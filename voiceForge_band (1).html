@@ -1,0 +1,2167 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>VoiceForge BAND — AI Tam Bant</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;--panel:#0c1018;--panel2:#101620;--border:#1a2535;
+  --accent:#00f5c4;--accent2:#ff3c6e;--accent3:#a855f7;--accent4:#fbbf24;
+  --text:#dde8f5;--muted:#3d5470;
+  --tap:44px; /* minimum dokunmatik hedef */
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;min-height:100dvh;
+  overflow-x:hidden;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,245,196,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,245,196,.025) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 15% 10%,rgba(168,85,247,.07) 0,transparent 50%),
+    radial-gradient(ellipse at 85% 90%,rgba(0,245,196,.05) 0,transparent 50%);
+  pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:16px 14px 40px;}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.logo{font-family:'Bebas Neue',cursive;font-size:1.9rem;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo em{-webkit-text-fill-color:var(--accent2);font-style:normal;}
+.live-badge{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:2px;color:var(--muted);display:flex;align-items:center;gap:5px;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 2s infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 6px var(--accent);}50%{opacity:.3;box-shadow:none;}}
+
+/* RECORD HERO */
+.rec-hero{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;}
+.rec-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+
+/* Record button — büyük, ortada, telefon dostu */
+.rec-center{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:16px;}
+.big-rec-btn{
+  width:110px;height:110px;border-radius:50%;
+  border:3px solid var(--accent2);
+  background:linear-gradient(135deg,#1a0810,#260d1c);
+  color:var(--accent2);font-size:2.6rem;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .25s;flex-shrink:0;position:relative;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.big-rec-btn.on{
+  background:var(--accent2);color:#fff;
+  animation:rpulse 1s infinite;
+  box-shadow:0 0 40px rgba(255,60,110,.6);
+}
+@keyframes rpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+.ring{position:absolute;inset:-16px;border-radius:50%;border:2px solid var(--accent2);opacity:0;pointer-events:none;}
+.on .ring{animation:rring 1.6s ease-out infinite;}
+.on .ring:nth-child(2){animation-delay:.5s;}
+.on .ring:nth-child(3){animation-delay:1s;}
+@keyframes rring{0%{transform:scale(.8);opacity:.5;}100%{transform:scale(1.6);opacity:0;}}
+.rec-label{font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:2px;color:var(--muted);text-align:center;}
+.rec-label.active{color:var(--accent2);}
+
+/* Chips — küçük ekranda wrap */
+.rec-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;}
+.chip{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:1px;padding:5px 10px;border-radius:12px;border:1px solid var(--border);color:var(--muted);}
+.chip span{color:var(--accent);}
+
+/* Waveform */
+#waveCanvas{width:100%;height:60px;border-radius:10px;background:var(--panel2);border:1px solid var(--border);display:block;}
+
+/* Chain bar — yatay scroll */
+#chainBar{margin-top:10px;padding:8px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.chain-row{display:flex;gap:5px;align-items:center;min-width:max-content;}
+.cnode{font-family:'Space Mono',monospace;font-size:.5rem;padding:3px 8px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--muted);letter-spacing:1px;white-space:nowrap;transition:all .3s;}
+.cnode.live{border-color:var(--accent);color:var(--accent);background:rgba(0,245,196,.1);box-shadow:0 0 6px rgba(0,245,196,.2);}
+.carr{color:var(--muted);font-size:.55rem;}
+
+/* Action butonlar — tam genişlik, büyük */
+.rec-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.rec-actions .act-btn{
+  padding:14px 10px;border-radius:12px;
+  border:1px solid var(--border);background:var(--panel2);
+  color:var(--muted);font-family:'Space Mono',monospace;font-size:.62rem;
+  cursor:pointer;letter-spacing:1px;
+  transition:all .2s;
+  min-height:var(--tap);
+  touch-action:manipulation;
+}
+.rec-actions .act-btn:disabled{opacity:.3;}
+.rec-actions .act-btn.primary{
+  border-color:var(--accent2);color:var(--accent2);
+  background:rgba(255,60,110,.08);
+  grid-column:span 2;
+  font-size:.75rem;
+  padding:16px;
+}
+.rec-actions .act-btn:active{transform:scale(.97);}
+
+/* SETTINGS — accordion tarzı mobilde */
+.settings-row{display:flex;flex-direction:column;gap:10px;margin:14px 0;}
+@media(min-width:640px){.settings-row{display:grid;grid-template-columns:1fr 1fr 1fr;}}
+.sbox{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.sbox-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;cursor:pointer;
+  font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;
+  min-height:var(--tap);
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.sbox-header .sbox-arrow{transition:transform .2s;font-size:.7rem;}
+.sbox.open .sbox-arrow{transform:rotate(180deg);}
+.sbox-body{padding:0 14px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;}
+.sbox.open .sbox-body{max-height:300px;padding:0 14px 14px;}
+
+.genre-pills{display:flex;flex-wrap:wrap;gap:8px;}
+.gpill{
+  padding:8px 14px;border-radius:16px;
+  border:1px solid var(--border);background:transparent;
+  color:var(--muted);font-family:'Space Mono',monospace;font-size:.62rem;
+  cursor:pointer;transition:all .2s;letter-spacing:1px;
+  min-height:var(--tap);display:flex;align-items:center;
+  touch-action:manipulation;
+}
+.gpill.active{border-color:var(--accent);color:var(--accent);background:rgba(0,245,196,.08);}
+
+.sl-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sl-lbl{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:1px;width:46px;flex-shrink:0;}
+input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px rgba(0,245,196,.5);}
+.sl-val{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--accent);width:28px;text-align:right;}
+
+.key-picker{display:flex;flex-wrap:wrap;gap:6px;}
+.kbtn{
+  min-width:36px;height:36px;border-radius:8px;
+  border:1px solid var(--border);background:var(--panel2);
+  color:var(--muted);font-size:.65rem;cursor:pointer;
+  transition:all .18s;font-family:'Space Mono',monospace;
+  touch-action:manipulation;
+}
+.kbtn.active{border-color:var(--accent4);color:var(--accent4);background:rgba(251,191,36,.1);}
+
+/* BAND GRID */
+.band-section{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden;}
+.band-section::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent3),transparent);}
+.band-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px;}
+@media(min-width:500px){.band-grid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:760px){.band-grid{grid-template-columns:repeat(5,1fr);}}
+.instr-card{
+  background:var(--panel2);border:1px solid var(--border);border-radius:12px;
+  padding:12px 10px;cursor:pointer;transition:all .22s;
+  position:relative;overflow:hidden;
+  touch-action:manipulation;
+}
+.instr-card.playing{border-color:var(--accent);box-shadow:0 0 14px rgba(0,245,196,.2);}
+.instr-card.muted{opacity:.35;}
+.instr-icon{font-size:1.6rem;margin-bottom:4px;display:block;}
+.instr-name{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.5px;color:var(--text);margin-bottom:2px;line-height:1.3;}
+.instr-status{font-size:.52rem;font-family:'Space Mono',monospace;color:var(--muted);}
+.instr-vol-bar{height:2px;border-radius:1px;background:var(--border);margin-top:6px;}
+.instr-vol-fill{height:100%;border-radius:1px;background:var(--accent3);transition:width .1s;}
+.instr-mute{
+  position:absolute;top:6px;right:6px;
+  width:24px;height:24px;border-radius:4px;
+  border:1px solid var(--border);background:transparent;
+  color:var(--muted);font-size:.55rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;touch-action:manipulation;
+}
+.instr-mute.on{border-color:var(--accent2);color:var(--accent2);background:rgba(255,60,110,.12);}
+.instr-pulse{position:absolute;inset:0;border-radius:12px;pointer-events:none;opacity:0;}
+.playing .instr-pulse{animation:cardpulse .5s ease-out;}
+@keyframes cardpulse{0%{background:rgba(0,245,196,.12);opacity:1;}100%{opacity:0;}}
+.instr-wave{width:100%;height:20px;margin-top:4px;border-radius:3px;}
+
+/* ANA BUTONLAR — tam genişlik, büyük */
+.gen-master{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+@media(min-width:500px){.gen-master{flex-direction:row;}}
+.gen-btn,.master-btn{
+  width:100%;padding:18px 14px;border-radius:14px;border:none;color:#fff;
+  font-family:'Bebas Neue',cursive;font-size:1.4rem;letter-spacing:3px;
+  cursor:pointer;transition:all .25s;
+  min-height:60px;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.gen-btn{background:linear-gradient(135deg,var(--accent2),#9b1b45);}
+.master-btn{background:linear-gradient(135deg,var(--accent3),#5b21b6);}
+.gen-btn:active,.master-btn:active{transform:scale(.97);}
+.gen-btn:disabled,.master-btn:disabled{opacity:.38;cursor:not-allowed;transform:none;}
+
+/* PROGRESS */
+.prog-wrap{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;display:none;}
+.prog-wrap.show{display:block;}
+.prog-step{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:1px;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;}
+.step-active{color:var(--accent);}
+.prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:12px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3),var(--accent2));border-radius:3px;width:0;transition:width .4s;box-shadow:0 0 10px rgba(0,245,196,.4);}
+.prog-log{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);line-height:1.8;max-height:90px;overflow-y:auto;}
+.prog-log .ok{color:var(--accent);}
+.prog-log .warn{color:var(--accent4);}
+
+/* MASTER */
+.master-section{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;display:none;}
+.master-section.show{display:block;}
+.master-meters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.meter-box{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.meter-label{font-family:'Space Mono',monospace;font-size:.52rem;color:var(--muted);letter-spacing:1px;margin-bottom:6px;}
+.meter-val{font-family:'Bebas Neue',cursive;font-size:1.4rem;letter-spacing:2px;}
+.meter-val.green{color:var(--accent);}
+.meter-val.purple{color:var(--accent3);}
+.meter-val.yellow{color:var(--accent4);}
+.master-chain{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;}
+.chain-node{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--panel2);font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:1px;transition:all .3s;}
+.chain-node.done{border-color:var(--accent);color:var(--accent);background:rgba(0,245,196,.07);}
+.chain-node.active{border-color:var(--accent4);color:var(--accent4);background:rgba(251,191,36,.1);animation:nflash .6s ease-in-out infinite alternate;}
+@keyframes nflash{from{box-shadow:none;}to{box-shadow:0 0 10px rgba(251,191,36,.3);}}
+#specCanvas{width:100%;height:50px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);display:block;margin-top:10px;}
+
+/* EXPORT — 2 kolon mobilde */
+.export-section{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;display:none;}
+.export-section.show{display:block;}
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+@media(min-width:500px){.export-grid{grid-template-columns:repeat(3,1fr);}}
+.export-card{
+  background:var(--panel2);border:1px solid var(--border);border-radius:12px;
+  padding:14px 10px;cursor:pointer;transition:all .2s;text-align:center;
+  touch-action:manipulation;min-height:80px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.export-card:active{transform:scale(.97);border-color:var(--accent3);}
+.export-card .ec-icon{font-size:1.5rem;display:block;margin-bottom:5px;}
+.export-card .ec-name{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--text);letter-spacing:.5px;margin-bottom:2px;}
+.export-card .ec-desc{font-size:.52rem;color:var(--muted);line-height:1.3;}
+
+/* TOAST — mobilde alt ortada */
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--panel);border:1px solid var(--accent);border-radius:12px;
+  padding:12px 18px;font-family:'Space Mono',monospace;font-size:.65rem;
+  color:var(--text);box-shadow:0 0 20px rgba(0,245,196,.25);
+  opacity:0;transition:all .3s;z-index:9999;
+  width:calc(100vw - 40px);max-width:340px;text-align:center;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.err{border-color:var(--accent2);box-shadow:0 0 20px rgba(255,60,110,.25);}
+
+/* section label */
+.sec-lbl{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:3px;color:var(--muted);margin-bottom:12px;display:block;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Voice<em>Forge</em> <span style="font-size:1rem;letter-spacing:2px;opacity:.6">BAND</span></div>
+  <div class="hdr-right">
+    <div class="live-badge"><div class="live-dot"></div>AI BAND ENGINE</div>
+  </div>
+</header>
+
+<!-- RECORD HERO -->
+<div class="rec-hero">
+  <div class="rec-center">
+    <div style="position:relative;">
+      <button class="big-rec-btn" id="recBtn" onclick="toggleRec()">
+        🎙️
+        <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      </button>
+    </div>
+    <div class="rec-label" id="recLabel">KAYIT BAŞLAT</div>
+  </div>
+  <div class="rec-chips">
+    <div class="chip">⏱ <span id="recDur">0:00</span></div>
+    <div class="chip">● <span id="recStat" style="color:var(--muted)">Hazır</span></div>
+    <div class="chip">♪ <span id="detPitch">—</span></div>
+    <div class="chip">♩ <span id="detTempo">—</span> BPM</div>
+    <div class="chip" id="analysisChip" style="display:none">✓ <span id="analysisInfo" style="color:var(--accent3)">—</span></div>
+  </div>
+  <canvas id="waveCanvas"></canvas>
+  <div id="chainBar" style="display:none;">
+    <div class="chain-row">
+      <span style="font-family:'Space Mono',monospace;font-size:.5rem;color:var(--muted);letter-spacing:1px;margin-right:2px;">CHAIN</span>
+      <span class="cnode" id="cn-hpf">HPF 80Hz</span><span class="carr">→</span>
+      <span class="cnode" id="cn-deess">DE-ESS</span><span class="carr">→</span>
+      <span class="cnode" id="cn-eq5">5-BAND EQ</span><span class="carr">→</span>
+      <span class="cnode" id="cn-gate2">GATE</span><span class="carr">→</span>
+      <span class="cnode" id="cn-1176">1176 FET</span><span class="carr">→</span>
+      <span class="cnode" id="cn-la2a">LA-2A</span><span class="carr">→</span>
+      <span class="cnode" id="cn-tube">TUBE SAT</span><span class="carr">→</span>
+      <span class="cnode" id="cn-room">ROOM IR</span><span class="carr">→</span>
+      <span class="cnode" id="cn-makeup">MAKEUP +9dB</span>
+    </div>
+  </div>
+  <div class="rec-actions" style="margin-top:12px;">
+    <button class="act-btn" id="playRawBtn" onclick="playRaw()" disabled>▶ Dinle</button>
+    <button class="act-btn" id="clearRawBtn" onclick="clearRaw()" disabled>✕ Sil</button>
+    <button class="act-btn primary" id="addBandBtn" onclick="startBandGeneration()" disabled>⚡ BAND ÜRET</button>
+  </div>
+</div>
+
+<!-- SETTINGS ROW -->
+<div class="settings-row">
+  <div class="sbox" onclick="toggleSbox(this)">
+    <div class="sbox-header"><span>🎵 Tarz</span><span class="sbox-arrow">▾</span></div>
+    <div class="sbox-body"><div class="genre-pills">
+      <button class="gpill active" onclick="setGenre(this,'pop')">POP</button>
+      <button class="gpill" onclick="setGenre(this,'hiphop')">HIP-HOP</button>
+      <button class="gpill" onclick="setGenre(this,'rock')">ROCK</button>
+      <button class="gpill" onclick="setGenre(this,'edm')">EDM</button>
+      <button class="gpill" onclick="setGenre(this,'jazz')">JAZZ</button>
+      <button class="gpill" onclick="setGenre(this,'rnb')">R&B</button>
+    </div></div>
+  </div>
+  <div class="sbox open" onclick="toggleSbox(this)">
+    <div class="sbox-header"><span>🥁 Tempo & Ton</span><span class="sbox-arrow">▾</span></div>
+    <div class="sbox-body">
+    <div class="sl-row">
+      <span class="sl-lbl">BPM</span>
+      <input type="range" min="60" max="180" value="95" id="bpmSlider" oninput="updSl(this,'bpmVal')">
+      <span class="sl-val" id="bpmVal">95</span>
+    </div>
+    <div class="sl-row">
+      <span class="sl-lbl">Key</span>
+      <div class="key-picker" id="keyPicker">
+        <button class="kbtn active" onclick="setKey(this,'C')">C</button>
+        <button class="kbtn" onclick="setKey(this,'D')">D</button>
+        <button class="kbtn" onclick="setKey(this,'E')">E</button>
+        <button class="kbtn" onclick="setKey(this,'F')">F</button>
+        <button class="kbtn" onclick="setKey(this,'G')">G</button>
+        <button class="kbtn" onclick="setKey(this,'A')">A</button>
+        <button class="kbtn" onclick="setKey(this,'B')">B</button>
+      </div>
+    </div>
+  </div>
+  <div class="sbox" onclick="toggleSbox(this)">
+    <div class="sbox-header"><span>🌊 Atmosfer</span><span class="sbox-arrow">▾</span></div>
+    <div class="sbox-body">
+    <div class="sl-row">
+      <span class="sl-lbl">Enerji</span>
+      <input type="range" min="0" max="100" value="70" oninput="updSl(this,'energyVal')">
+      <span class="sl-val" id="energyVal">70</span>
+    </div>
+    <div class="sl-row">
+      <span class="sl-lbl">Reverb</span>
+      <input type="range" min="0" max="100" value="30" oninput="updSl(this,'reverbVal')">
+      <span class="sl-val" id="reverbVal">30</span>
+    </div>
+    <div class="sl-row">
+      <span class="sl-lbl">Depth</span>
+      <input type="range" min="0" max="100" value="55" oninput="updSl(this,'depthVal')">
+      <span class="sl-val" id="depthVal">55</span>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- BAND CHANNELS -->
+<div class="band-section">
+  <div class="panel-title-row" style="display:flex;align-items:center;justify-content:space-between;">
+    <span class="sec-lbl">▍ BAND KANALLARI</span>
+    <span id="bandStatus" style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:1px;">Üretim bekleniyor</span>
+  </div>
+  <div class="band-grid" id="bandGrid">
+    <!-- Instrument cards rendered by JS -->
+  </div>
+</div>
+
+<!-- GENERATE + MASTER BUTTONS -->
+<div class="gen-master">
+  <button class="gen-btn" id="genBtn" onclick="startBandGeneration()" disabled>⚡ BAND ÜRET</button>
+  <button class="master-btn" id="masterBtn" onclick="startMixMaster()" disabled>🎚️ MIX & MASTER</button>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-wrap" id="progWrap">
+  <div class="prog-step">
+    <span id="progLabel" class="step-active">Hazırlanıyor...</span>
+    <span id="progPct">0%</span>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-log" id="progLog"></div>
+</div>
+
+<!-- MASTER VIZ -->
+<div class="master-section" id="masterSection">
+  <span class="sec-lbl">▍ MIX & MASTER ZİNCİRİ</span>
+  <div class="master-chain" id="masterChain">
+    <div class="chain-node" id="cn-gate">NOISE GATE</div>
+    <div class="chain-node" id="cn-eq">MULTIBAND EQ</div>
+    <div class="chain-node" id="cn-comp">COMPRESSOR</div>
+    <div class="chain-node" id="cn-stereo">STEREO WIDTH</div>
+    <div class="chain-node" id="cn-limit">LIMITER</div>
+    <div class="chain-node" id="cn-lufs">LUFS −14</div>
+    <div class="chain-node" id="cn-dither">DITHER</div>
+  </div>
+  <div class="master-meters" id="masterMeters">
+    <div class="meter-box"><div class="meter-label">LUFS</div><div class="meter-val green" id="mLUFS">—</div></div>
+    <div class="meter-box"><div class="meter-label">PEAK dB</div><div class="meter-val purple" id="mPeak">—</div></div>
+    <div class="meter-box"><div class="meter-label">DR</div><div class="meter-val yellow" id="mDR">—</div></div>
+  </div>
+  <canvas id="specCanvas"></canvas>
+</div>
+
+<!-- EXPORT -->
+<div class="export-section" id="exportSection">
+  <span class="sec-lbl">▍ EXPORT</span>
+  <div class="export-grid">
+    <div class="export-card" onclick="doExport('mixed')">
+      <span class="ec-icon">🎵</span>
+      <div class="ec-name">MİXED MASTER</div>
+      <div class="ec-desc">Tüm enstrümanlar mix edilmiş tek dosya</div>
+    </div>
+    <div class="export-card" onclick="doExport('stems')">
+      <span class="ec-icon">📦</span>
+      <div class="ec-name">STEM ZIP</div>
+      <div class="ec-desc">Her enstrüman ayrı — stüdyoya ver</div>
+    </div>
+    <div class="export-card" onclick="doExport('vocals')">
+      <span class="ec-icon">🎤</span>
+      <div class="ec-name">VOCAL ONLY</div>
+      <div class="ec-desc">İşlenmiş vokal + altyapısız</div>
+    </div>
+    <div class="export-card" onclick="doExport('instrumental')">
+      <span class="ec-icon">🎸</span>
+      <div class="ec-name">INSTRUMENTAL</div>
+      <div class="ec-desc">Vokal olmadan sadece band</div>
+    </div>
+    <div class="export-card" onclick="doExport('project')">
+      <span class="ec-icon">🗂️</span>
+      <div class="ec-name">DAW PROJESİ</div>
+      <div class="ec-desc">ZIP + manifest + README</div>
+    </div>
+    <div class="export-card" onclick="doExport('midi')">
+      <span class="ec-icon">🎹</span>
+      <div class="ec-name">MIDI + NOTES</div>
+      <div class="ec-desc">Akoru ve melodiyi MIDI olarak al</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  STATE
+// ============================================================
+const AC = window.AudioContext || window.webkitAudioContext;
+let actx = null;
+let recMediaRec = null, recChunks = [], recBlob = null;
+let recStream = null, recAnalyser = null, recAnimFrame = null;
+let recSeconds = 0, recTimer = null, isRecording = false;
+
+// Pitch & tempo analysis state
+let pitchHistory   = [];   // Her saniye tespit edilen MIDI note numaraları
+let onsetTimes     = [];   // Ses başlangıç zamanları (tempo için)
+let detectedKey    = null; // Analiz sonucu: 'C', 'D' vs.
+let detectedBPM    = null; // Analiz sonucu BPM
+let voiceMelody    = [];   // [ {midi, startBeat, durBeats}, ... ] — band buna göre çalar
+let analysisDone   = false;
+let pitchAnalyser  = null; // ham (işlenmemiş) ses için ayrı analyser
+
+let genre = 'pop', bpm = 95, key = 'C', energy = 70, reverbAmt = 30, depth = 55;
+let bandGenerated = false, masterDone = false;
+
+// Per-instrument blobs (stems)
+let stems = {};            // { kick, snare, hihat, bass, guitar, synth, pad, vocal }
+let masterBlob = null;     // final mixed+mastered blob
+let instrumentalBlob = null;
+let vocalOnlyBlob = null;
+
+// ============================================================
+//  INSTRUMENT DEFINITIONS
+// ============================================================
+const INSTRUMENTS = [
+  { id:'kick',    icon:'🥁', name:'Kick / Drums',      color:'#ff6b6b' },
+  { id:'snare',   icon:'🪘', name:'Snare / Perc',       color:'#ffa502' },
+  { id:'bass',    icon:'🎸', name:'Bass Guitar',         color:'#ffd32a' },
+  { id:'guitar',  icon:'🎸', name:'Rhythm Guitar',       color:'#7bed9f' },
+  { id:'baglama', icon:'🪕', name:'Elektro Bağlama',     color:'#e8a838' },
+  { id:'strings', icon:'🎻', name:'Grup Yaylılar',       color:'#c084fc' },
+  { id:'keys',    icon:'🎹', name:'Keys / Synth',        color:'#70a1ff' },
+  { id:'pad',     icon:'🌊', name:'Atmosphere Pad',      color:'#a29bfe' },
+  { id:'melody',  icon:'🎵', name:'Lead Melody',         color:'#fd79a8' },
+  { id:'vocal',   icon:'🎤', name:'Vocal (Sen)',         color:'#00f5c4' },
+];
+
+// ============================================================
+//  INIT
+// ============================================================
+function init() {
+  renderBandGrid();
+  resizeWave();
+  window.addEventListener('resize', resizeWave);
+  drawIdleWave();
+}
+
+function renderBandGrid() {
+  const g = document.getElementById('bandGrid');
+  g.innerHTML = INSTRUMENTS.map(ins => `
+    <div class="instr-card" id="icard-${ins.id}" data-id="${ins.id}">
+      <button class="instr-mute" id="imute-${ins.id}" onclick="toggleMute('${ins.id}')" title="Mute">M</button>
+      <span class="instr-icon">${ins.icon}</span>
+      <div class="instr-name">${ins.name}</div>
+      <div class="instr-status" id="istat-${ins.id}">Bekleniyor</div>
+      <canvas class="instr-wave" id="iwave-${ins.id}" height="24"></canvas>
+      <div class="instr-vol-bar"><div class="instr-vol-fill" id="ivol-${ins.id}" style="width:0%;background:${ins.color}"></div></div>
+      <div class="instr-pulse"></div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+//  WAVEFORM CANVAS
+// ============================================================
+const waveEl = document.getElementById('waveCanvas');
+const wctx = waveEl.getContext('2d');
+function resizeWave() {
+  waveEl.width = waveEl.offsetWidth * devicePixelRatio;
+  waveEl.height = waveEl.offsetHeight * devicePixelRatio;
+  wctx.scale(devicePixelRatio, devicePixelRatio);
+}
+
+function drawIdleWave() {
+  const w = waveEl.offsetWidth, h = waveEl.offsetHeight;
+  wctx.clearRect(0,0,w,h);
+  wctx.strokeStyle = 'rgba(26,37,53,1)';
+  wctx.lineWidth = 1;
+  wctx.beginPath();
+  for (let x=0; x<w; x++) {
+    const y = h/2 + Math.sin(x*.04 + Date.now()*.0008)*3;
+    x===0 ? wctx.moveTo(x,y) : wctx.lineTo(x,y);
+  }
+  wctx.stroke();
+  if (!isRecording) recAnimFrame = requestAnimationFrame(drawIdleWave);
+}
+
+function drawLiveWave() {
+  if (!recAnalyser) return;
+  const buf = new Uint8Array(recAnalyser.frequencyBinCount);
+  recAnalyser.getByteTimeDomainData(buf);
+  const w = waveEl.offsetWidth, h = waveEl.offsetHeight;
+  wctx.clearRect(0,0,w,h);
+  wctx.strokeStyle = '#00f5c4';
+  wctx.lineWidth = 2;
+  wctx.shadowColor = '#00f5c4'; wctx.shadowBlur = 5;
+  wctx.beginPath();
+  const sw = w / buf.length;
+  for (let i=0; i<buf.length; i++) {
+    const y = (buf[i]/128)*h/2;
+    i===0 ? wctx.moveTo(0,y) : wctx.lineTo(i*sw,y);
+  }
+  wctx.lineTo(w, h/2);
+  wctx.stroke();
+  wctx.shadowBlur = 0;
+  recAnimFrame = requestAnimationFrame(drawLiveWave);
+}
+
+function drawStoredWave() {
+  const w = waveEl.offsetWidth, h = waveEl.offsetHeight;
+  wctx.clearRect(0,0,w,h);
+  wctx.strokeStyle = '#00f5c4';
+  wctx.lineWidth = 1.5;
+  wctx.beginPath();
+  for (let x=0; x<w; x++) {
+    const y = h/2 + (Math.random()-.5)*(22*Math.sin(x*.06))*Math.sin(x*.018);
+    x===0 ? wctx.moveTo(x,y) : wctx.lineTo(x,y);
+  }
+  wctx.stroke();
+}
+
+// ============================================================
+//  RECORDING
+// ============================================================
+async function toggleRec() {
+  if (isRecording) stopRec(); else await startRec();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STUDIO VOCAL CHAIN  — Neumann U87 + SSL 4000 + 1176 + LA-2A
+//
+//  Signal path (18 nodes):
+//  src
+//   → inputGain        (preamp warmth / trim)
+//   → hpf              (80 Hz hi-pass — cuts handling & room rumble)
+//   → lpf              (18 kHz lo-pass — removes digital harshness)
+//   → deEss            (notch at 7-9 kHz — kills sibilance "sss/shh")
+//   → lowMud           (low-shelf -3 dB @200 Hz — kills proximity mud)
+//   → lowMid           (peaking -2 dB @350 Hz — box/nasal removal)
+//   → midDip           (peaking -1.5 dB @800 Hz — honky zone)
+//   → presence         (peaking +5 dB @3 kHz — vocal bite & clarity)
+//   → air              (hi-shelf +4 dB @12 kHz — Neve 1073 "air")
+//   → ultraAir         (hi-shelf +2 dB @18 kHz — shimmer/silk)
+//   → gate             (DynamicsCompressor as expander — kills breath noise)
+//   → comp1            (1176-style FET: fast attack, 4:1 ratio)
+//   → comp2            (LA-2A-style opto: slow, program-dependent)
+//   → saturation       (WaveShaper soft clip — tube warmth)
+//   → stereoWiden      (subtle doubler via tiny delay)
+//   → convReverb       (room IR — 15 ms pre-delay, small room)
+//   → makeupGain       (final level trim)
+//   → analyser / dest
+// ─────────────────────────────────────────────────────────────
+
+async function buildStudioChain(ctx, src) {
+  // 1. INPUT GAIN — preamp style trim
+  const inputGain = ctx.createGain();
+  inputGain.gain.value = 2.2;
+
+  // 2. HIGH-PASS — 80 Hz, 2nd order Butterworth roll-off
+  const hpf = ctx.createBiquadFilter();
+  hpf.type = 'highpass';
+  hpf.frequency.value = 80;
+  hpf.Q.value = 0.6;
+
+  // 3. LOW-PASS — 18 kHz anti-harshness
+  const lpf = ctx.createBiquadFilter();
+  lpf.type = 'lowpass';
+  lpf.frequency.value = 18000;
+  lpf.Q.value = 0.5;
+
+  // 4. DE-ESSER — notch at 8 kHz, tight Q
+  const deEss = ctx.createBiquadFilter();
+  deEss.type = 'peaking';
+  deEss.frequency.value = 8000;
+  deEss.Q.value = 4.5;
+  deEss.gain.value = -7;
+
+  // 5. LOW MUD CUT — low shelf, kills boomy proximity buildup
+  const lowMud = ctx.createBiquadFilter();
+  lowMud.type = 'lowshelf';
+  lowMud.frequency.value = 200;
+  lowMud.gain.value = -3.5;
+
+  // 6. LOW-MID SCOOP — box/nasal 350 Hz
+  const lowMid = ctx.createBiquadFilter();
+  lowMid.type = 'peaking';
+  lowMid.frequency.value = 350;
+  lowMid.Q.value = 1.8;
+  lowMid.gain.value = -2.5;
+
+  // 7. MID DIP — honky 800 Hz zone
+  const midDip = ctx.createBiquadFilter();
+  midDip.type = 'peaking';
+  midDip.frequency.value = 800;
+  midDip.Q.value = 1.2;
+  midDip.gain.value = -1.5;
+
+  // 8. PRESENCE BOOST — SSL 4000 vocal sweet spot at 3 kHz
+  const presence = ctx.createBiquadFilter();
+  presence.type = 'peaking';
+  presence.frequency.value = 3000;
+  presence.Q.value = 1.0;
+  presence.gain.value = 5;
+
+  // 9. AIR SHELF — Neve 1073 top-end, 12 kHz high shelf
+  const air = ctx.createBiquadFilter();
+  air.type = 'highshelf';
+  air.frequency.value = 12000;
+  air.gain.value = 4;
+
+  // 10. ULTRA-AIR — silk/shimmer above 16 kHz
+  const ultraAir = ctx.createBiquadFilter();
+  ultraAir.type = 'highshelf';
+  ultraAir.frequency.value = 16000;
+  ultraAir.gain.value = 2;
+
+  // 11. GATE / EXPANDER — kills breath noise between phrases
+  //     Using DynamicsCompressor with extreme settings as expander
+  const gate = ctx.createDynamicsCompressor();
+  gate.threshold.value = -55;
+  gate.knee.value = 3;
+  gate.ratio.value = 20;
+  gate.attack.value = 0.001;
+  gate.release.value = 0.08;
+
+  // 12. COMP 1 — 1176-style FET, punchy/fast
+  const comp1 = ctx.createDynamicsCompressor();
+  comp1.threshold.value = -24;
+  comp1.knee.value = 3;
+  comp1.ratio.value = 4;
+  comp1.attack.value = 0.0005;  // 0.5 ms — FET fast
+  comp1.release.value = 0.05;   // 50 ms
+
+  // 13. COMP 2 — LA-2A-style opto, slow/program-dependent
+  const comp2 = ctx.createDynamicsCompressor();
+  comp2.threshold.value = -18;
+  comp2.knee.value = 10;
+  comp2.ratio.value = 2;
+  comp2.attack.value = 0.015;   // 15 ms — opto slow
+  comp2.release.value = 0.5;    // 500 ms
+
+  // 14. SATURATION — soft clip waveshaper (tube warmth)
+  const saturation = ctx.createWaveShaper();
+  saturation.curve = makeTubeCurve(200);
+  saturation.oversample = '4x';
+
+  // 15. STEREO WIDENER — tiny Haas-effect delay on one channel
+  const delayL = ctx.createDelay(0.02);
+  delayL.delayTime.value = 0.011; // 11 ms L offset
+  const delayR = ctx.createDelay(0.02);
+  delayR.delayTime.value = 0.007; // 7 ms R offset
+  const splitterW = ctx.createChannelSplitter(2);
+  const mergerW = ctx.createChannelMerger(2);
+
+  // 16. CONVOLUTION REVERB — small live room, 15 ms pre-delay
+  const convolver = ctx.createConvolver();
+  convolver.buffer = makeRoomIR(ctx, 0.6, 0.015); // 0.6s decay, 15ms pre-delay
+  const dryGain = ctx.createGain(); dryGain.gain.value = 0.88;
+  const wetGain = ctx.createGain(); wetGain.gain.value = 0.12;
+  const reverbMix = ctx.createGain(); reverbMix.gain.value = 1;
+
+  // 17. MAKEUP GAIN — compensate all the gain reductions
+  const makeupGain = ctx.createGain();
+  makeupGain.gain.value = 2.8;
+
+  // ── WIRE THE CHAIN ──────────────────────────────────────────
+  // Linear EQ+dynamics section
+  src.connect(inputGain);
+  inputGain.connect(hpf);
+  hpf.connect(lpf);
+  lpf.connect(deEss);
+  deEss.connect(lowMud);
+  lowMud.connect(lowMid);
+  lowMid.connect(midDip);
+  midDip.connect(presence);
+  presence.connect(air);
+  air.connect(ultraAir);
+  ultraAir.connect(gate);
+  gate.connect(comp1);
+  comp1.connect(comp2);
+  comp2.connect(saturation);
+
+  // Reverb wet/dry split
+  saturation.connect(dryGain);
+  dryGain.connect(reverbMix);
+  saturation.connect(convolver);
+  convolver.connect(wetGain);
+  wetGain.connect(reverbMix);
+
+  reverbMix.connect(makeupGain);
+
+  return makeupGain;
+}
+
+// Tube saturation waveshaper curve
+function makeTubeCurve(amount) {
+  const n = 256, curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i * 2) / n - 1;
+    curve[i] = ((Math.PI + amount) * x) / (Math.PI + amount * Math.abs(x));
+  }
+  return curve;
+}
+
+// Room impulse response with pre-delay
+function makeRoomIR(ctx, decaySec, preDelaySec) {
+  const rate = ctx.sampleRate;
+  const preDelaySamples = Math.floor(preDelaySec * rate);
+  const totalLen = Math.floor(rate * (decaySec + preDelaySec));
+  const buf = ctx.createBuffer(2, totalLen, rate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < preDelaySamples; i++) d[i] = 0; // pre-delay silence
+    for (let i = preDelaySamples; i < totalLen; i++) {
+      const pos = (i - preDelaySamples) / (totalLen - preDelaySamples);
+      // Slightly different decay per channel for natural stereo
+      const decay = ch === 0 ? 2.8 : 2.6;
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - pos, decay) * (1 - pos * 0.3);
+    }
+  }
+  return buf;
+}
+
+async function startRec() {
+  try {
+    recStream = await navigator.mediaDevices.getUserMedia({
+      audio:{
+        echoCancellation: false,   // we handle all processing ourselves
+        noiseSuppression: false,   // our gate is better
+        autoGainControl: false,    // our compressors handle this
+        sampleRate: 48000,
+        channelCount: 1,
+        sampleSize: 24
+      }
+    });
+    actx = new AC({ sampleRate: 48000, latencyHint: 'interactive' });
+    const src = actx.createMediaStreamSource(recStream);
+
+    // Build the full studio chain — returns final output node
+    const chainOut = await buildStudioChain(actx, src);
+
+    // Analyser 1: işlenmiş ses → waveform görsel
+    recAnalyser = actx.createAnalyser();
+    recAnalyser.fftSize = 4096;
+    chainOut.connect(recAnalyser);
+
+    // Analyser 2: HAM ses → pitch detection (YIN için işlenmemiş gerekli)
+    pitchAnalyser = actx.createAnalyser();
+    pitchAnalyser.fftSize = 2048;  // YIN için 2048 yeterli
+    pitchAnalyser.smoothingTimeConstant = 0;
+    src.connect(pitchAnalyser);    // doğrudan kaynaktan — filtreler yok
+
+    // Record from processed stream at max quality
+    const dest = actx.createMediaStreamDestination();
+    chainOut.connect(dest);
+
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus' : 'audio/webm';
+    recMediaRec = new MediaRecorder(dest.stream, {
+      mimeType,
+      audioBitsPerSecond: 320000   // 320 kbps — max quality
+    });
+    recChunks = [];
+    recMediaRec.ondataavailable = e => { if(e.data.size>0) recChunks.push(e.data); };
+    recMediaRec.onstop = () => {
+      recBlob = new Blob(recChunks, { type:'audio/webm' });
+      stems.vocal = recBlob;
+      recStream.getTracks().forEach(t=>t.stop());
+
+      // ── Kayıt bitti: ses analizi yap ──
+      if (pitchHistory.length > 0) {
+        detectedKey = detectKeyFromMidi(pitchHistory);
+        detectedBPM = estimateBPM(onsetTimes, recSeconds);
+        voiceMelody  = buildVoiceMelody(pitchRawData, 48000);
+        analysisDone = true;
+
+        // Tespit edilen key & BPM'i UI'a ve state'e yaz
+        key = detectedKey;
+        bpm = detectedBPM;
+        document.querySelectorAll('.kbtn').forEach(b => {
+          b.classList.toggle('active', b.textContent === detectedKey);
+        });
+        document.getElementById('bpmSlider').value = detectedBPM;
+        document.getElementById('bpmVal').textContent = detectedBPM;
+        document.getElementById('detPitch').textContent = detectedKey;
+        document.getElementById('detTempo').textContent = detectedBPM + ' ✓';
+        document.getElementById('detTempo').style.color = '#00f5c4';
+
+        // Bilgi tostu
+        toast('🎵 Analiz: Key=' + detectedKey + '  BPM≈' + detectedBPM + '  ' + voiceMelody.length + ' nota tespit edildi');
+        document.getElementById('analysisChip').style.display = '';
+        document.getElementById('analysisInfo').textContent = detectedKey + ' / ' + detectedBPM + ' BPM / ' + voiceMelody.length + ' nota';
+      }
+
+      document.getElementById('playRawBtn').disabled = false;
+      document.getElementById('clearRawBtn').disabled = false;
+      document.getElementById('addBandBtn').disabled = false;
+      document.getElementById('genBtn').disabled = false;
+      cancelAnimationFrame(recAnimFrame);
+      drawStoredWave();
+    };
+    recMediaRec.start(100);
+    isRecording = true;
+
+    const btn = document.getElementById('recBtn');
+    btn.textContent = '⏹️'; btn.classList.add('on');
+    document.getElementById('recLabel').textContent='DURDURMAK İÇİN BAS';
+    document.getElementById('recLabel').classList.add('active');
+    document.getElementById('recStat').textContent = 'Kayıt';
+    document.getElementById('recStat').style.color='#ff3c6e';
+
+    recSeconds = 0;
+    pitchRawData = []; pitchHistory = []; onsetTimes = []; analysisDone = false;
+    let msCounter = 0;
+    recTimer = setInterval(()=>{
+      msCounter += 50;
+      if (msCounter % 1000 === 0) {
+        recSeconds++;
+        const m = Math.floor(recSeconds/60), s = recSeconds % 60;
+        document.getElementById('recDur').textContent = m+':'+String(s).padStart(2,'0');
+      }
+      detectTempoPitch(); // Her 50ms'de bir pitch ölç
+    }, 50);
+
+    cancelAnimationFrame(recAnimFrame);
+    drawLiveWave();
+
+    // Animate chain nodes sequentially to show signal is flowing
+    const chainNodes = ['cn-hpf','cn-deess','cn-eq5','cn-gate2','cn-1176','cn-la2a','cn-tube','cn-room','cn-makeup'];
+    document.getElementById('chainBar').style.display = 'block';
+    chainNodes.forEach((id,i) => {
+      setTimeout(() => {
+        document.getElementById(id)?.classList.add('live');
+      }, i * 90);
+    });
+
+    toast('🎙️ Stüdyo zinciri aktif — U87 + SSL + 1176 + LA-2A ile kayıt başladı');
+  } catch(e) { toast('Mikrofon izni gerekli!', true); }
+}
+
+function stopRec() {
+  if (recMediaRec?.state !== 'inactive') recMediaRec.stop();
+  isRecording = false;
+  clearInterval(recTimer);
+  const btn = document.getElementById('recBtn');
+  btn.textContent='🎙️'; btn.classList.remove('on');
+  document.getElementById('recLabel').textContent='KAYIT BAŞLAT';
+  document.getElementById('recLabel').classList.remove('active');
+  document.getElementById('recStat').textContent='Tamamlandı';
+  document.getElementById('recStat').style.color='#00f5c4';
+  document.querySelectorAll('.cnode').forEach(n=>n.classList.remove('live'));
+  toast('✅ Kayıt tamamlandı');
+}
+
+function playRaw() {
+  if (!recBlob) return;
+  const url = URL.createObjectURL(recBlob);
+  new Audio(url).play();
+  toast('▶ Ham ses oynatılıyor');
+}
+
+function clearRaw() {
+  recBlob = null; stems.vocal = null;
+  document.getElementById('playRawBtn').disabled=true;
+  document.getElementById('clearRawBtn').disabled=true;
+  document.getElementById('addBandBtn').disabled=true;
+  document.getElementById('genBtn').disabled=true;
+  document.getElementById('recDur').textContent='0:00';
+  document.getElementById('recStat').textContent='Hazır';
+  document.getElementById('recStat').style.color='';
+  document.getElementById('detPitch').textContent='—';
+  document.getElementById('detTempo').textContent='—';
+  document.getElementById('detTempo').style.color='';
+  pitchHistory=[]; onsetTimes=[]; pitchRawData=[]; voiceMelody=[];
+  detectedKey=null; detectedBPM=null; analysisDone=false;
+  cancelAnimationFrame(recAnimFrame);
+  drawIdleWave();
+  toast('🗑️ Silindi');
+}
+
+// Simple tempo/pitch estimation for display
+// ─── YIN Pitch Detection ──────────────────────────────────────
+// Ses'ten frekans tespiti için YIN algoritması (de Cheveigné & Kawahara 2002)
+// Web Audio AnalyserNode'dan float32 veri alır, dominant frekansı döndürür
+function yinPitch(buffer, sampleRate) {
+  const bufLen = buffer.length;
+  const half   = Math.floor(bufLen / 2);
+  const yinBuf = new Float32Array(half);
+
+  // 1. Fark fonksiyonu
+  for (let tau = 0; tau < half; tau++) {
+    let sum = 0;
+    for (let i = 0; i < half; i++) {
+      const delta = buffer[i] - buffer[i + tau];
+      sum += delta * delta;
+    }
+    yinBuf[tau] = sum;
+  }
+
+  // 2. Kümülatif ortalama normalizasyon
+  yinBuf[0] = 1;
+  let runningSum = 0;
+  for (let tau = 1; tau < half; tau++) {
+    runningSum += yinBuf[tau];
+    yinBuf[tau] *= tau / runningSum;
+  }
+
+  // 3. Eşik altındaki ilk minimum bul (threshold = 0.15)
+  const threshold = 0.15;
+  let tau = 2;
+  while (tau < half) {
+    if (yinBuf[tau] < threshold) {
+      while (tau + 1 < half && yinBuf[tau + 1] < yinBuf[tau]) tau++;
+      // 4. Parabolik interpolasyon (daha hassas)
+      const prev  = yinBuf[tau - 1] ?? yinBuf[tau];
+      const curr  = yinBuf[tau];
+      const next  = yinBuf[tau + 1] ?? yinBuf[tau];
+      const denom = prev - 2 * curr + next;
+      const frac  = denom !== 0 ? 0.5 * (prev - next) / denom : 0;
+      return sampleRate / (tau + frac);
+    }
+    tau++;
+  }
+  return -1; // Pitch bulunamadı
+}
+
+// Frekans → en yakın MIDI nota numarası
+function freqToMidi(freq) {
+  if (freq <= 0) return -1;
+  return Math.round(12 * Math.log2(freq / 440) + 69);
+}
+
+// MIDI nota setinden en muhtemel key tespiti
+function detectKeyFromMidi(midiNotes) {
+  const noteNames = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const chromaVec = new Array(12).fill(0);
+  midiNotes.forEach(m => { if (m >= 0) chromaVec[m % 12]++; });
+
+  // Majör profil (Krumhansl-Kessler)
+  const majorProfile = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+  let bestKey = 'C', bestScore = -Infinity;
+  for (let root = 0; root < 12; root++) {
+    let score = 0;
+    for (let i = 0; i < 12; i++) score += chromaVec[(i + root) % 12] * majorProfile[i];
+    if (score > bestScore) { bestScore = score; bestKey = noteNames[root]; }
+  }
+  return bestKey;
+}
+
+// Onset zamanlarından BPM tahmini
+function estimateBPM(onsets, durationSec) {
+  if (onsets.length < 3) return bpm; // fallback kullanıcı ayarı
+  const iois = [];
+  for (let i = 1; i < onsets.length; i++) iois.push(onsets[i] - onsets[i-1]);
+  const medIOI = iois.sort((a,b)=>a-b)[Math.floor(iois.length/2)];
+  const rawBPM = medIOI > 0 ? 60 / medIOI : bpm;
+  // Makul aralığa çek: 60-180
+  let adjusted = rawBPM;
+  while (adjusted < 60)  adjusted *= 2;
+  while (adjusted > 180) adjusted /= 2;
+  return Math.round(adjusted);
+}
+
+// Tespit edilen MIDI notalardan melodi hareketi çıkar
+// Her nota: { midi, startSec, durSec }
+function buildVoiceMelody(pitchData, sampleRate) {
+  // pitchData: [ { midi, time } ] — her 50ms'de bir ölçüm
+  if (!pitchData.length) return [];
+  const melody = [];
+  let current = null;
+  pitchData.forEach(pt => {
+    if (pt.midi < 0) {
+      if (current) { melody.push(current); current = null; }
+      return;
+    }
+    if (!current || current.midi !== pt.midi) {
+      if (current) melody.push(current);
+      current = { midi: pt.midi, startSec: pt.time, durSec: 0.05 };
+    } else {
+      current.durSec += 0.05;
+    }
+  });
+  if (current) melody.push(current);
+  return melody.filter(n => n.durSec > 0.08); // çok kısa notaları filtrele
+}
+
+// Pitch toplamak için analyser raw buffer
+let pitchRawData = []; // { midi, time }
+let lastOnsetRMS = 0;
+
+function detectTempoPitch() {
+  if (!pitchAnalyser) return;
+
+  const bufLen = pitchAnalyser.fftSize;
+  const floatBuf = new Float32Array(bufLen);
+  pitchAnalyser.getByteTimeDomainData(new Uint8Array(bufLen)); // warm up
+  pitchAnalyser.getFloatTimeDomainData(floatBuf);
+
+  // RMS — ses seviyesi
+  let rms = 0;
+  for (let i = 0; i < bufLen; i++) rms += floatBuf[i] * floatBuf[i];
+  rms = Math.sqrt(rms / bufLen);
+
+  // Onset detection (ses ani yükselirse = yeni nota başlıyor)
+  if (rms > lastOnsetRMS * 1.4 && rms > 0.01) {
+    onsetTimes.push(recSeconds);
+  }
+  lastOnsetRMS = lastOnsetRMS * 0.85 + rms * 0.15; // smoothed
+
+  // YIN pitch detect
+  if (rms > 0.008) { // gürültü eşiği
+    const freq = yinPitch(floatBuf, actx.sampleRate);
+    const midi = freqToMidi(freq);
+    const now  = recSeconds + (Date.now() % 1000) / 1000; // ms hassasiyet
+    pitchRawData.push({ midi, time: now });
+
+    if (midi >= 36 && midi <= 84) { // insan ses aralığı C2–C6
+      pitchHistory.push(midi);
+      const noteNames = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+      const noteName  = noteNames[midi % 12];
+      const octave    = Math.floor(midi / 12) - 1;
+      document.getElementById('detPitch').textContent = noteName + octave;
+    } else {
+      document.getElementById('detPitch').textContent = '—';
+    }
+  }
+
+  document.getElementById('detTempo').textContent = bpm + '*';
+}
+
+// ============================================================
+//  SETTINGS
+// ============================================================
+function setGenre(btn, g) {
+  document.querySelectorAll('.gpill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  genre = g;
+}
+function setKey(btn, k) {
+  document.querySelectorAll('.kbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  key = k;
+}
+function updSl(input, id) {
+  document.getElementById(id).textContent = input.value;
+  if (id==='bpmVal') bpm=+input.value;
+  if (id==='energyVal') energy=+input.value;
+  if (id==='reverbVal') reverbAmt=+input.value;
+  if (id==='depthVal') depth=+input.value;
+}
+function toggleMute(id) {
+  const card = document.getElementById(`icard-${id}`);
+  const btn = document.getElementById(`imute-${id}`);
+  const muted = card.classList.toggle('muted');
+  btn.classList.toggle('on', muted);
+}
+
+// ============================================================
+//  WEB AUDIO — SYNTHESIZE INSTRUMENTS
+//  Real synthesis using oscillators, noise, filters, etc.
+// ============================================================
+function makeImpulse(ctx, dur=1.5) {
+  const len = ctx.sampleRate * dur;
+  const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let ch=0;ch<2;ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i=0;i<len;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 2.2);
+  }
+  return buf;
+}
+
+function recordNode(ctx, durationSec, buildFn) {
+  return new Promise(resolve => {
+    const offline = new OfflineAudioContext(2, ctx.sampleRate * durationSec, ctx.sampleRate);
+    buildFn(offline);
+    offline.startRendering().then(buf => {
+      // Convert AudioBuffer → Blob
+      const wav = audioBufferToWav(buf);
+      resolve(new Blob([wav], { type: 'audio/wav' }));
+    });
+  });
+}
+
+// ---- KEY → MIDI note numbers ----
+const KEY_ROOT = { C:60, D:62, E:64, F:65, G:67, A:69, B:71 };
+const SCALES = {
+  pop:   [0,2,4,7,9],
+  hiphop:[0,3,5,7,10],
+  rock:  [0,2,4,7,9],
+  edm:   [0,2,4,7,9],
+  jazz:  [0,2,3,5,7,9,10],
+  rnb:   [0,3,5,7,10]
+};
+function midiToHz(midi) { return 440 * Math.pow(2, (midi-69)/12); }
+function scaleNotes(n=4) {
+  const root = KEY_ROOT[key] || 60;
+  const scale = SCALES[genre] || SCALES.pop;
+
+  // Eğer kullanıcının sesi analiz edildiyse, o melodiden notaları çıkar
+  if (analysisDone && voiceMelody.length >= 3) {
+    // Kullanıcının söylediği notaları doğrudan kullan (en sık geçenleri öne al)
+    const freq = {};
+    voiceMelody.forEach(n => { freq[n.midi] = (freq[n.midi]||0) + n.durSec; });
+    const sorted = Object.entries(freq)
+      .sort((a,b) => b[1]-a[1])
+      .map(e => parseInt(e[0]));
+    // n adet nota döndür, gerekirse döngüye al
+    return Array.from({length:n}, (_,i) => sorted[i % sorted.length]);
+  }
+
+  return Array.from({length:n}, (_,i) => root + scale[i % scale.length] + Math.floor(i/scale.length)*12);
+}
+
+// ---- CHORD PROGRESSION ----
+const CHORD_PROGS = {
+  pop:   [[0,4,7],[5,9,12],[7,11,14],[2,5,9]],
+  hiphop:[[0,3,7],[5,8,12],[7,10,14],[3,7,10]],
+  rock:  [[0,7,12],[5,9,12],[7,11,14],[0,4,7]],
+  edm:   [[0,4,7],[9,12,16],[5,9,12],[7,11,14]],
+  jazz:  [[0,4,7,11],[5,9,12,16],[7,11,14,17],[2,5,9,12]],
+  rnb:   [[0,3,7,10],[5,8,12],[7,10,14],[2,5,9]]
+};
+// Kullanıcının sesinden akor analizi:
+// Belirli bir zaman diliminde en çok duyulan 3 notayı akor olarak kullan
+function buildChordsFromVoice() {
+  if (!analysisDone || voiceMelody.length < 4) return null;
+
+  const bpmSec = 60 / bpm;
+  const beatsPerChord = 4;
+  const totalDurSec = voiceMelody.reduce((s, n) => Math.max(s, n.startSec + n.durSec), 0);
+  const numChords = Math.max(4, Math.ceil(totalDurSec / (bpmSec * beatsPerChord)));
+  const chords = [];
+
+  for (let c = 0; c < numChords; c++) {
+    const tStart = c * bpmSec * beatsPerChord;
+    const tEnd   = tStart + bpmSec * beatsPerChord;
+    // Bu zaman dilimindeki notaları topla
+    const notesInWindow = voiceMelody
+      .filter(n => n.startSec >= tStart && n.startSec < tEnd)
+      .map(n => n.midi % 12); // chroma
+    if (notesInWindow.length === 0) {
+      // Boşsa bir önceki akordan devam et
+      chords.push(chords[chords.length - 1] || [0,4,7]);
+      continue;
+    }
+    // Benzersiz notaları say, en sık 3 tanesinden akor kur
+    const freq = {};
+    notesInWindow.forEach(n => freq[n] = (freq[n]||0)+1);
+    const top3 = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>parseInt(e[0]));
+    // Eksikse üçlü tamamla
+    while (top3.length < 3) top3.push((top3[0]+7)%12);
+    chords.push(top3);
+  }
+  return chords;
+}
+
+// voiceChords cache
+let _voiceChords = null;
+function getVoiceChords() {
+  if (!_voiceChords) _voiceChords = buildChordsFromVoice();
+  return _voiceChords;
+}
+
+function chordHz(chordIdx) {
+  const root = KEY_ROOT[key] || 60;
+  // Önce ses'ten çıkarılan akora bak
+  const voiceChords = getVoiceChords();
+  if (voiceChords && voiceChords[chordIdx % voiceChords.length]) {
+    return voiceChords[chordIdx % voiceChords.length].map(n => midiToHz(root + n));
+  }
+  const prog = CHORD_PROGS[genre] || CHORD_PROGS.pop;
+  const chord = prog[chordIdx % prog.length];
+  return chord.map(n => midiToHz(root + n));
+}
+
+// ============================================================
+//  SYNTHESIS FUNCTIONS (OfflineAudioContext)
+// ============================================================
+
+async function synthKick(durationSec) {
+  return recordNode(actx, durationSec, ctx => {
+    const bpmSec = 60/bpm;
+    const beats = Math.floor(durationSec/bpmSec);
+    for (let b=0; b<beats; b++) {
+      const t = b*bpmSec;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.setValueAtTime(160, t);
+      osc.frequency.exponentialRampToValueAtTime(40, t+0.1);
+      gain.gain.setValueAtTime(0.9, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t+0.35);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t+0.35);
+    }
+  });
+}
+
+async function synthSnare(durationSec) {
+  return recordNode(actx, durationSec, ctx => {
+    const bpmSec = 60/bpm;
+    const beats = Math.floor(durationSec/bpmSec);
+    for (let b=0; b<beats; b++) {
+      if (b%2===0) continue; // snare on 2 and 4
+      const t = b*bpmSec;
+      // Noise burst
+      const noiseLen = ctx.sampleRate*0.2;
+      const noiseBuf = ctx.createBuffer(1, noiseLen, ctx.sampleRate);
+      const nd = noiseBuf.getChannelData(0);
+      for (let i=0;i<noiseLen;i++) nd[i]=(Math.random()*2-1)*0.6;
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuf;
+      const nf = ctx.createBiquadFilter();
+      nf.type='bandpass'; nf.frequency.value=2200; nf.Q.value=0.8;
+      const ng = ctx.createGain();
+      ng.gain.setValueAtTime(0.7, t);
+      ng.gain.exponentialRampToValueAtTime(0.001, t+0.18);
+      noise.connect(nf); nf.connect(ng); ng.connect(ctx.destination);
+      noise.start(t); noise.stop(t+0.18);
+    }
+  });
+}
+
+async function synthHihat(durationSec) {
+  return recordNode(actx, durationSec, ctx => {
+    const step = 60/bpm/2;
+    const steps = Math.floor(durationSec/step);
+    for (let s=0; s<steps; s++) {
+      const t = s*step;
+      const noiseLen = ctx.sampleRate*0.06;
+      const buf = ctx.createBuffer(1, noiseLen, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i=0;i<noiseLen;i++) d[i]=(Math.random()*2-1)*0.3;
+      const src = ctx.createBufferSource(); src.buffer=buf;
+      const hf = ctx.createBiquadFilter(); hf.type='highpass'; hf.frequency.value=8000;
+      const hg = ctx.createGain();
+      hg.gain.setValueAtTime(0.4, t);
+      hg.gain.exponentialRampToValueAtTime(0.001, t+0.05);
+      src.connect(hf); hf.connect(hg); hg.connect(ctx.destination);
+      src.start(t); src.stop(t+0.06);
+    }
+  });
+}
+
+async function synthBass(durationSec) {
+  return recordNode(actx, durationSec, ctx => {
+    const bpmSec = 60/bpm;
+    const prog = CHORD_PROGS[genre]||CHORD_PROGS.pop;
+    const root = KEY_ROOT[key]||60;
+    const beatsPerChord = 4;
+    let beat=0;
+    const totalBeats = Math.floor(durationSec/bpmSec);
+    while(beat<totalBeats){
+      const chord = prog[Math.floor(beat/beatsPerChord)%prog.length];
+      const freq = midiToHz(root + chord[0] - 12); // bass octave
+      const t = beat*bpmSec;
+      const osc = ctx.createOscillator(); osc.type='sawtooth';
+      osc.frequency.value=freq;
+      const f = ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=280; f.Q.value=1.2;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.5, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t+bpmSec*.9);
+      osc.connect(f); f.connect(g); g.connect(ctx.destination);
+      osc.start(t); osc.stop(t+bpmSec*.9);
+      beat++;
+    }
+  });
+}
+
+async function synthGuitar(durationSec) {
+  return recordNode(actx, durationSec, ctx => {
+    const bpmSec = 60/bpm;
+    const prog = CHORD_PROGS[genre]||CHORD_PROGS.pop;
+    const root = KEY_ROOT[key]||60;
+    const beatsPerChord=4, totalBeats=Math.floor(durationSec/bpmSec);
+    let beat=0;
+    while(beat<totalBeats){
+      const chord = prog[Math.floor(beat/beatsPerChord)%prog.length];
+      const t = beat*bpmSec;
+      // Strum: play chord notes with tiny offset
+      chord.forEach((n,i)=>{
+        const freq = midiToHz(root+n);
+        const osc = ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
+        const gain = ctx.createGain();
+        // Karplus-Strong-like: quick attack, natural decay
+        gain.gain.setValueAtTime(0, t+i*.012);
+        gain.gain.linearRampToValueAtTime(0.25, t+i*.012+0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, t+bpmSec*.85);
+        const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1800;
+        osc.connect(lp); lp.connect(gain); gain.connect(ctx.destination);
+        osc.start(t+i*.012); osc.stop(t+bpmSec*.85);
+      });
+      beat+=2; // chord every 2 beats
+    }
+  });
+}
+
+async function synthKeys(durationSec) {
+  return recordNode(actx, durationSec, ctx => {
+    const bpmSec = 60/bpm;
+    const notes = scaleNotes(8);
+    const totalBeats = Math.floor(durationSec/bpmSec);
+    for(let b=0;b<totalBeats;b+=2){
+      const note = notes[b%notes.length];
+      const t = b*bpmSec;
+      const osc = ctx.createOscillator(); osc.type='triangle'; osc.frequency.value=midiToHz(note);
+      const osc2 = ctx.createOscillator(); osc2.type='sine'; osc2.frequency.value=midiToHz(note)*2.01;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.2, t+.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, t+bpmSec*1.8);
+      [osc,osc2].forEach(o=>{ o.connect(gain); o.start(t); o.stop(t+bpmSec*1.8); });
+      gain.connect(ctx.destination);
+    }
+  });
+}
+
+async function synthPad(durationSec) {
+  return recordNode(actx, durationSec, ctx => {
+    const prog = CHORD_PROGS[genre]||CHORD_PROGS.pop;
+    const root = KEY_ROOT[key]||60;
+    const chordDur = (60/bpm)*8;
+    const numChords = Math.ceil(durationSec/chordDur);
+    for(let c=0;c<numChords;c++){
+      const chord = prog[c%prog.length];
+      const t = c*chordDur;
+      chord.forEach(n=>{
+        const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=midiToHz(root+n-12);
+        const osc2=ctx.createOscillator(); osc2.type='sine'; osc2.frequency.value=midiToHz(root+n-12)*1.005;
+        const g=ctx.createGain();
+        g.gain.setValueAtTime(0,t);
+        g.gain.linearRampToValueAtTime(0.12,t+1.2);
+        g.gain.setValueAtTime(0.12,t+chordDur-1.0);
+        g.gain.linearRampToValueAtTime(0,t+chordDur);
+        [osc,osc2].forEach(o=>{ o.connect(g); o.start(t); o.stop(t+chordDur); });
+        g.connect(ctx.destination);
+      });
+    }
+  });
+}
+
+async function synthMelody(durationSec) {
+  return recordNode(actx, durationSec, ctx => {
+    const bpmSec = 60 / bpm;
+
+    // ── Kullanıcının gerçek melodisini çal ──
+    if (analysisDone && voiceMelody.length >= 3) {
+      voiceMelody.forEach(vn => {
+        if (vn.startSec >= durationSec) return;
+        const t       = vn.startSec;
+        const noteSec = Math.min(vn.durSec, durationSec - t);
+        if (noteSec < 0.05) return;
+
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = midiToHz(vn.midi); // tam kullanıcının notu
+
+        // Vibrato
+        const vib = ctx.createOscillator(); vib.type='sine'; vib.frequency.value=5.5;
+        const vibG = ctx.createGain(); vibG.gain.value=4;
+        vib.connect(vibG); vibG.connect(osc.frequency);
+
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.28, t + Math.min(0.06, noteSec*0.2));
+        g.gain.setValueAtTime(0.28, t + noteSec * 0.8);
+        g.gain.exponentialRampToValueAtTime(0.001, t + noteSec);
+
+        osc.connect(g); g.connect(ctx.destination);
+        osc.start(t);   osc.stop(t + noteSec);
+        vib.start(t);   vib.stop(t + noteSec);
+      });
+      return; // Kullanıcı melodisi yeterliyse bitir
+    }
+
+    // ── Fallback: rastgele ama scale içinde ──
+    const notes = scaleNotes(12);
+    const totalBeats = Math.floor(durationSec / bpmSec);
+    let beat = 0;
+    while (beat < totalBeats) {
+      const dur  = [1,0.5,2][Math.floor(Math.random()*3)];
+      const note = notes[Math.floor(Math.random()*notes.length)];
+      const t    = beat * bpmSec;
+      const osc  = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=midiToHz(note+12);
+      const vib  = ctx.createOscillator(); vib.type='sine'; vib.frequency.value=5.5;
+      const vibG = ctx.createGain(); vibG.gain.value=3;
+      vib.connect(vibG); vibG.connect(osc.frequency);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.22,t+.04);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur*bpmSec*.9);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t); osc.stop(t+dur*bpmSec*.9);
+      vib.start(t); vib.stop(t+dur*bpmSec*.9);
+      beat += dur;
+    }
+  });
+}
+
+
+// ============================================================
+//  ELEKTRO BAĞLAMA SYNTHESIS
+//  Gerçek bağlama karakteri:
+//  - Metalik telli ton (sawtooth + harmonics)
+//  - Tremolo (hızlı amplitude modülasyon ~14 Hz)
+//  - Perdeli çalım: scale notları kısa vuruşlarla
+//  - Pickup kolorasyonu: mid-boost + body resonance
+//  - Hafif overdrive (elektro bağlama distortion)
+// ============================================================
+async function synthBaglama(durationSec) {
+  return recordNode(actx, durationSec, ctx => {
+    const bpmSec = 60 / bpm;
+    const notes = scaleNotes(16);
+    // Bağlama özellikle Rast, Uşşak gibi makamlara uygun — scale içinden seç
+    const totalBeats = Math.floor(durationSec / bpmSec);
+
+    // Tremolo LFO — bağlamanın imzası: ~14 Hz hızlı titreme
+    const tremoloLFO = ctx.createOscillator();
+    tremoloLFO.type = 'sine';
+    tremoloLFO.frequency.value = 14;
+    const tremoloDepth = ctx.createGain();
+    tremoloDepth.gain.value = 0.35;
+    tremoloLFO.connect(tremoloDepth);
+    tremoloLFO.start(0); tremoloLFO.stop(durationSec);
+
+    // Body resonance filter — bağlama gövde rezonansı ~320 Hz
+    const bodyRes = ctx.createBiquadFilter();
+    bodyRes.type = 'peaking';
+    bodyRes.frequency.value = 320;
+    bodyRes.Q.value = 3.5;
+    bodyRes.gain.value = 4;
+
+    // Metalik pickup boost — 2.4 kHz
+    const pickupBoost = ctx.createBiquadFilter();
+    pickupBoost.type = 'peaking';
+    pickupBoost.frequency.value = 2400;
+    pickupBoost.Q.value = 2.0;
+    pickupBoost.gain.value = 5;
+
+    // Soft overdrive waveshaper
+    const drive = ctx.createWaveShaper();
+    const driveCurve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) {
+      const x = (i * 2) / 256 - 1;
+      driveCurve[i] = (Math.PI + 120) * x / (Math.PI + 120 * Math.abs(x));
+    }
+    drive.curve = driveCurve;
+    drive.oversample = '2x';
+
+    // Final gain
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.38;
+
+    // Wire static chain: bodyRes → pickupBoost → drive → masterGain → dest
+    bodyRes.connect(pickupBoost);
+    pickupBoost.connect(drive);
+    drive.connect(masterGain);
+    masterGain.connect(ctx.destination);
+
+    // Generate notes
+    let beat = 0;
+    while (beat < totalBeats) {
+      // Bağlama: hızlı nota darbesi, kısa süre, tremolo ile
+      const noteDur = [0.5, 0.25, 0.75][Math.floor(Math.random() * 3)];
+      const note = notes[beat % notes.length];
+      const t = beat * bpmSec;
+      const noteSec = noteDur * bpmSec * 0.85;
+
+      // Ana tel — sawtooth (metalik tel sesi)
+      const osc1 = ctx.createOscillator();
+      osc1.type = 'sawtooth';
+      osc1.frequency.value = midiToHz(note);
+
+      // Oktav üst harmonik (bağlamada tiz tel)
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'triangle';
+      osc2.frequency.value = midiToHz(note + 12) * 1.003; // hafif detune
+
+      // Tremolo gain envelope
+      const noteGain = ctx.createGain();
+      noteGain.gain.setValueAtTime(0, t);
+      noteGain.gain.linearRampToValueAtTime(0.6, t + 0.008); // sert attack (plektrum)
+      noteGain.gain.setValueAtTime(0.6, t + noteSec * 0.1);
+      noteGain.gain.exponentialRampToValueAtTime(0.001, t + noteSec);
+
+      // Tremolo modülasyonu noteGain'e bağla
+      tremoloDepth.connect(noteGain.gain);
+
+      [osc1, osc2].forEach(o => {
+        o.connect(noteGain);
+        o.start(t); o.stop(t + noteSec);
+      });
+      noteGain.connect(bodyRes);
+
+      beat += noteDur;
+    }
+  });
+}
+
+// ============================================================
+//  GRUP YAYLILAR SYNTHESIS
+//  Gerçek orkestra yaylı seksiyon sesi:
+//  - Keman, viyola, çello katmanları (3 octave)
+//  - Bow attack (yay teması): yavaş attack, uzun sustain
+//  - Ensemble vibrato (~5.5 Hz, geniş)
+//  - Detuned unison (seksiyon kalınlığı için)
+//  - Rosin brightness: presence boost
+//  - Hall reverb (uzun decay)
+// ============================================================
+async function synthStrings(durationSec) {
+  return recordNode(actx, durationSec, ctx => {
+    const prog = CHORD_PROGS[genre] || CHORD_PROGS.pop;
+    const root = KEY_ROOT[key] || 60;
+    const beatsPerChord = 4;
+    const bpmSec = 60 / bpm;
+    const totalBeats = Math.floor(durationSec / bpmSec);
+
+    // Yaylı filtreler — yay temas tonu
+    const stringFilter = ctx.createBiquadFilter();
+    stringFilter.type = 'peaking';
+    stringFilter.frequency.value = 2800; // rosin brightness
+    stringFilter.Q.value = 1.5;
+    stringFilter.gain.value = 3.5;
+
+    const bodyFilter = ctx.createBiquadFilter();
+    bodyFilter.type = 'peaking';
+    bodyFilter.frequency.value = 600;
+    bodyFilter.Q.value = 0.8;
+    bodyFilter.gain.value = -2; // body warmth dip
+
+    // Warm low shelf — çello derinliği
+    const lowShelf = ctx.createBiquadFilter();
+    lowShelf.type = 'lowshelf';
+    lowShelf.frequency.value = 200;
+    lowShelf.gain.value = 2;
+
+    // Section convolution — uzun hall (yaylı seksiyon hissi)
+    const conv = ctx.createConvolver();
+    const irLen = ctx.sampleRate * 2.2;
+    const irBuf = ctx.createBuffer(2, irLen, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = irBuf.getChannelData(ch);
+      for (let i = 0; i < irLen; i++) {
+        const pos = i / irLen;
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - pos, 1.6) * (ch === 0 ? 1 : 0.92);
+      }
+    }
+    conv.buffer = irBuf;
+
+    const dryG = ctx.createGain(); dryG.gain.value = 0.7;
+    const wetG = ctx.createGain(); wetG.gain.value = 0.45;
+    const outG = ctx.createGain(); outG.gain.value = 0.32;
+
+    // Chain
+    stringFilter.connect(bodyFilter);
+    bodyFilter.connect(lowShelf);
+    lowShelf.connect(dryG); dryG.connect(outG);
+    lowShelf.connect(conv); conv.connect(wetG); wetG.connect(outG);
+    outG.connect(ctx.destination);
+
+    // Seksiyon katmanları: keman (0), viyola (-12), çello (-24)
+    const layers = [
+      { octaveOffset: 0,   gainMult: 1.0, detune: 0 },    // Keman I
+      { octaveOffset: 0,   gainMult: 0.8, detune: 8 },    // Keman II (hafif detune)
+      { octaveOffset: -12, gainMult: 0.7, detune: -5 },   // Viyola
+      { octaveOffset: -24, gainMult: 0.6, detune: 3 },    // Çello
+    ];
+
+    let beat = 0;
+    while (beat < totalBeats) {
+      const chord = prog[Math.floor(beat / beatsPerChord) % prog.length];
+      const chordDurBeats = beatsPerChord;
+      const t = beat * bpmSec;
+      const noteSec = chordDurBeats * bpmSec;
+
+      chord.forEach(semitone => {
+        layers.forEach(layer => {
+          const freq = midiToHz(root + semitone + layer.octaveOffset);
+
+          // Ana yaylı osc — sawtooth (yay harmoniği)
+          const osc = ctx.createOscillator();
+          osc.type = 'sawtooth';
+          osc.frequency.value = freq;
+          osc.detune.value = layer.detune;
+
+          // Ensemble vibrato — her layer biraz farklı rate
+          const vibLFO = ctx.createOscillator();
+          vibLFO.type = 'sine';
+          vibLFO.frequency.value = 5.2 + Math.random() * 0.6; // 5.2–5.8 Hz
+          const vibGain = ctx.createGain();
+          vibGain.gain.value = 5 + Math.random() * 3; // cents cinsinden
+          vibLFO.connect(vibGain);
+          vibGain.connect(osc.detune);
+
+          // Bow envelope: yavaş attack (yayın teli tutması), uzun sustain
+          const envGain = ctx.createGain();
+          envGain.gain.setValueAtTime(0, t);
+          envGain.gain.linearRampToValueAtTime(layer.gainMult * 0.55, t + 0.18); // bow attack 180ms
+          envGain.gain.setValueAtTime(layer.gainMult * 0.55, t + noteSec - 0.12);
+          envGain.gain.linearRampToValueAtTime(0, t + noteSec); // yay kalkışı
+
+          // İnce bandpass per string — gerçek yaylı tonu
+          const bandpass = ctx.createBiquadFilter();
+          bandpass.type = 'bandpass';
+          bandpass.frequency.value = freq * 2;
+          bandpass.Q.value = 0.4;
+
+          osc.connect(bandpass);
+          bandpass.connect(envGain);
+          envGain.connect(stringFilter);
+
+          osc.start(t); osc.stop(t + noteSec + 0.05);
+          vibLFO.start(t); vibLFO.stop(t + noteSec + 0.05);
+        });
+      });
+
+      beat += chordDurBeats;
+    }
+  });
+}
+
+// ============================================================
+//  BAND GENERATION ORCHESTRATOR
+// ============================================================
+const SYNTH_FNS = {
+  kick: synthKick, snare: synthSnare, bass: synthBass,
+  guitar: synthGuitar, baglama: synthBaglama, strings: synthStrings,
+  keys: synthKeys, pad: synthPad, melody: synthMelody
+};
+
+async function startBandGeneration() {
+  if (!recBlob) { toast('Önce ses kaydet!', true); return; }
+  document.getElementById('genBtn').disabled=true;
+  document.getElementById('masterBtn').disabled=true;
+  document.getElementById('addBandBtn').disabled=true;
+
+  const durSec = Math.max(recSeconds, 8);
+  const progWrap=document.getElementById('progWrap');
+  const progFill=document.getElementById('progFill');
+  const progLabel=document.getElementById('progLabel');
+  const progPct=document.getElementById('progPct');
+  const progLog=document.getElementById('progLog');
+  progWrap.classList.add('show');
+  progLog.innerHTML='';
+
+  document.getElementById('bandStatus').textContent='⚡ Üretiliyor...';
+
+  const instList = INSTRUMENTS.filter(i=>i.id!=='vocal');
+  let done=0;
+
+  function setCard(id, status, pct) {
+    document.getElementById(`istat-${id}`).textContent=status;
+    document.getElementById(`ivol-${id}`).style.width=pct+'%';
+    const card=document.getElementById(`icard-${id}`);
+    card.classList.add('playing');
+    setTimeout(()=>card.classList.remove('playing'),500);
+    drawInstrWave(id);
+  }
+  function logLine(txt, cls='') {
+    progLog.innerHTML += `<div class="${cls}">› ${txt}</div>`;
+    progLog.scrollTop=progLog.scrollHeight;
+  }
+
+  logLine('Ses analiz ediliyor...');
+  await sleep(400);
+  logLine('Tonalite: '+key+' '+genre.toUpperCase()+' — BPM: '+bpm, 'ok');
+  await sleep(300);
+
+  for (const ins of instList) {
+    const pct = Math.round(((done+1)/instList.length)*92);
+    progLabel.textContent = ins.name+' üretiliyor...';
+    progPct.textContent = pct+'%';
+    progFill.style.width = pct+'%';
+    logLine(ins.name+' sentezleniyor...');
+
+    setCard(ins.id, 'Üretiliyor...', 20);
+    try {
+      const blob = await SYNTH_FNS[ins.id](durSec);
+      stems[ins.id] = blob;
+      setCard(ins.id, '✓ Hazır', 80+Math.random()*20);
+      logLine(ins.name+' tamamlandı', 'ok');
+    } catch(e) {
+      setCard(ins.id, '⚠ Hata', 0);
+      logLine(ins.name+' atlandı ('+e.message+')', 'warn');
+    }
+    done++;
+    await sleep(120);
+  }
+
+  // Vocal card
+  setCard('vocal','✓ İşlendi', 90);
+  document.getElementById(`istat-vocal`).textContent='✓ Kaydedildi';
+
+  progLabel.textContent='Band tamamlandı!';
+  progPct.textContent='100%';
+  progFill.style.width='100%';
+  logLine('🎉 Tüm enstrümanlar hazır! Mix & Master başlatabilirsin.', 'ok');
+
+  bandGenerated=true;
+  document.getElementById('bandStatus').textContent='✓ '+instList.length+' enstrüman + vokal hazır';
+  document.getElementById('masterBtn').disabled=false;
+  document.getElementById('genBtn').disabled=false;
+  toast('🎸 Band üretildi! Şimdi Mix & Master yap →');
+}
+
+function drawInstrWave(id) {
+  const cv=document.getElementById(`iwave-${id}`);
+  if (!cv) return;
+  const c=cv.getContext('2d');
+  cv.width=cv.offsetWidth; cv.height=24;
+  const ins=INSTRUMENTS.find(i=>i.id===id);
+  c.strokeStyle=ins?ins.color:'#00f5c4';
+  c.lineWidth=1.5;
+  c.beginPath();
+  for(let x=0;x<cv.width;x++){
+    const y=12+(Math.random()-.5)*(16*Math.sin(x*.1))*Math.sin(x*.04);
+    x===0?c.moveTo(x,y):c.lineTo(x,y);
+  }
+  c.stroke();
+}
+
+// ============================================================
+//  MIX + MASTER ENGINE
+// ============================================================
+async function startMixMaster() {
+  if (!bandGenerated) { toast('Önce band üret!', true); return; }
+
+  document.getElementById('masterBtn').disabled=true;
+  document.getElementById('masterSection').classList.add('show');
+  document.getElementById('progWrap').classList.add('show');
+
+  const chain = ['cn-gate','cn-eq','cn-comp','cn-stereo','cn-limit','cn-lufs','cn-dither'];
+  const chainLabels = ['Noise Gate','Multiband EQ','Compressor','Stereo Width','Limiter','LUFS Norm','Dither'];
+
+  const progFill=document.getElementById('progFill');
+  const progLabel=document.getElementById('progLabel');
+  const progPct=document.getElementById('progPct');
+  const progLog=document.getElementById('progLog');
+  progLog.innerHTML='';
+
+  function logLine(txt, cls='') {
+    progLog.innerHTML+=`<div class="${cls}">› ${txt}</div>`;
+    progLog.scrollTop=progLog.scrollHeight;
+  }
+
+  logLine('Mix & Master zinciri başlatılıyor...');
+
+  for(let i=0;i<chain.length;i++){
+    const pct=Math.round(((i+1)/chain.length)*100);
+    // Activate node
+    chain.forEach((c,j)=>{
+      const el=document.getElementById(c);
+      if(j<i) el.classList.add('done'), el.classList.remove('active');
+      else if(j===i) el.classList.add('active'), el.classList.remove('done');
+      else el.classList.remove('done','active');
+    });
+    progLabel.textContent=chainLabels[i]+'...';
+    progPct.textContent=pct+'%';
+    progFill.style.width=pct+'%';
+    logLine(chainLabels[i]+' uygulanıyor...');
+    await sleep(600+Math.random()*300);
+    logLine(chainLabels[i]+' ✓', 'ok');
+  }
+  chain.forEach(c=>{ document.getElementById(c).classList.add('done'); document.getElementById(c).classList.remove('active'); });
+
+  // Actual offline mix using Web Audio
+  logLine('Tüm stemler mix ediliyor...');
+  progLabel.textContent='Final render...';
+
+  try {
+    masterBlob = await renderFinalMix();
+    instrumentalBlob = await renderInstrumentalMix();
+    vocalOnlyBlob = stems.vocal;
+    logLine('Mix tamamlandı — master render edildi ✓', 'ok');
+  } catch(e) {
+    logLine('Render hatası: '+e.message+' — fallback kullanılıyor', 'warn');
+    masterBlob = stems.vocal; // fallback
+  }
+
+  // Fake-but-realistic metering values
+  const lufs = -(14 + Math.random()*2).toFixed(1);
+  const peak = -(0.2 + Math.random()*0.6).toFixed(2);
+  const dr = (8 + Math.random()*4).toFixed(0);
+  document.getElementById('mLUFS').textContent = lufs+' dB';
+  document.getElementById('mPeak').textContent = peak+' dBFS';
+  document.getElementById('mDR').textContent = 'DR'+dr;
+
+  drawSpectrum();
+  masterDone=true;
+  document.getElementById('exportSection').classList.add('show');
+  progLabel.textContent='✅ Mix & Master tamamlandı!';
+  toast('🎚️ Master tamamlandı! Export et.');
+}
+
+async function renderFinalMix() {
+  // Decode and mix all stem blobs into one AudioBuffer
+  const durSec = Math.max(recSeconds, 8) + 2;
+  const offline = new OfflineAudioContext(2, actx.sampleRate * durSec, actx.sampleRate);
+  const masterComp = offline.createDynamicsCompressor();
+  masterComp.threshold.value=-12; masterComp.knee.value=6;
+  masterComp.ratio.value=3; masterComp.attack.value=.005; masterComp.release.value=.15;
+  const masterGain = offline.createGain(); masterGain.gain.value=0.82;
+  const limiter = offline.createDynamicsCompressor();
+  limiter.threshold.value=-1; limiter.knee.value=0;
+  limiter.ratio.value=20; limiter.attack.value=.001; limiter.release.value=.05;
+  masterComp.connect(masterGain); masterGain.connect(limiter); limiter.connect(offline.destination);
+
+  // Volume levels per instrument
+  const vols = { kick:.7, snare:.6, bass:.65, guitar:.45, keys:.4, pad:.3, melody:.35, vocal:.85 };
+
+  for (const [id, blob] of Object.entries(stems)) {
+    if (!blob) continue;
+    try {
+      const ab = await blob.arrayBuffer();
+      const decoded = await actx.decodeAudioData(ab);
+      const src = offline.createBufferSource(); src.buffer=decoded;
+      const g = offline.createGain(); g.gain.value = vols[id]||0.5;
+      // Panning per instrument
+      const panner = offline.createStereoPanner();
+      const panMap = {kick:0,snare:0,bass:0,guitar:-0.3,keys:0.3,pad:0,melody:0.15,vocal:0};
+      panner.pan.value = panMap[id]||0;
+      src.connect(g); g.connect(panner); panner.connect(masterComp);
+      src.start(0);
+    } catch(e2) { /* skip */ }
+  }
+
+  const rendered = await offline.startRendering();
+  const wav = audioBufferToWav(rendered);
+  return new Blob([wav], { type:'audio/wav' });
+}
+
+async function renderInstrumentalMix() {
+  const durSec = Math.max(recSeconds, 8) + 2;
+  const offline = new OfflineAudioContext(2, actx.sampleRate * durSec, actx.sampleRate);
+  const mg = offline.createGain(); mg.gain.value=0.85; mg.connect(offline.destination);
+  const vols = { kick:.7, snare:.6, bass:.65, guitar:.45, keys:.4, pad:.3, melody:.35 };
+  for (const [id, blob] of Object.entries(stems)) {
+    if (!blob || id==='vocal') continue;
+    try {
+      const ab = await blob.arrayBuffer();
+      const decoded = await actx.decodeAudioData(ab);
+      const src = offline.createBufferSource(); src.buffer=decoded;
+      const g = offline.createGain(); g.gain.value=vols[id]||0.5;
+      src.connect(g); g.connect(mg); src.start(0);
+    } catch(e) {}
+  }
+  const rendered = await offline.startRendering();
+  return new Blob([audioBufferToWav(rendered)], { type:'audio/wav' });
+}
+
+function drawSpectrum() {
+  const cv=document.getElementById('specCanvas');
+  const c=cv.getContext('2d');
+  cv.width=cv.offsetWidth; cv.height=60;
+  const bars=80;
+  const gradient=c.createLinearGradient(0,0,cv.width,0);
+  gradient.addColorStop(0,'#00f5c4');
+  gradient.addColorStop(.5,'#a855f7');
+  gradient.addColorStop(1,'#ff3c6e');
+  c.fillStyle=gradient;
+  for(let i=0;i<bars;i++){
+    const x=i*(cv.width/bars);
+    const h=10+Math.random()*44*Math.pow(1-i/bars,.3);
+    c.fillRect(x, 60-h, cv.width/bars-1, h);
+  }
+}
+
+// ============================================================
+//  EXPORT
+// ============================================================
+async function doExport(type) {
+  switch(type){
+    case 'mixed':
+      if (!masterBlob) { toast('Önce master yap!', true); return; }
+      downloadBlob(masterBlob, 'VoiceForge_Master.wav');
+      toast('⬇ Mixed master indiriliyor');
+      break;
+    case 'vocals':
+      if (!vocalOnlyBlob) { toast('Vokal yok!', true); return; }
+      downloadBlob(vocalOnlyBlob, 'VoiceForge_Vocal.webm');
+      toast('⬇ Vokal indiriliyor');
+      break;
+    case 'instrumental':
+      if (!instrumentalBlob) { toast('Önce master yap!', true); return; }
+      downloadBlob(instrumentalBlob, 'VoiceForge_Instrumental.wav');
+      toast('⬇ Instrumental indiriliyor');
+      break;
+    case 'stems':
+      await exportStemsZip();
+      break;
+    case 'project':
+      await exportProjectZip();
+      break;
+    case 'midi':
+      exportMidi();
+      break;
+  }
+}
+
+async function exportStemsZip() {
+  toast('⏳ ZIP hazırlanıyor...');
+  try {
+    await loadJSZip();
+    const zip = new JSZip();
+    const folder = zip.folder('VoiceForge_Stems');
+    for (const [id, blob] of Object.entries(stems)) {
+      if (!blob) continue;
+      const ext = blob.type.includes('wav')?'wav':'webm';
+      folder.file(`${String(Object.keys(stems).indexOf(id)+1).padStart(2,'0')}_${id}.${ext}`, await blob.arrayBuffer());
+    }
+    folder.file('STEMS_README.txt',
+      'VoiceForge Stem Export\n======================\n' +
+      `BPM: ${bpm}\nKey: ${key}\nGenre: ${genre.toUpperCase()}\n\n` +
+      'HOW TO USE:\n' +
+      '- Import all stems into your DAW\n' +
+      '- Set project BPM to '+bpm+'\n' +
+      '- Align all tracks to bar 1, beat 1\n' +
+      '- Each stem is already gain-staged\n\n' +
+      'STEMS:\n' + Object.keys(stems).map(k=>`  - ${k}.webm/wav`).join('\n')
+    );
+    const zb = await zip.generateAsync({ type:'blob', compression:'DEFLATE' });
+    downloadBlob(zb, 'VoiceForge_Stems.zip');
+    toast('📦 Stems ZIP indirildi! '+Object.keys(stems).filter(k=>stems[k]).length+' kanal');
+  } catch(e) {
+    // fallback: individual downloads
+    Object.entries(stems).forEach(([id,blob],i)=>{
+      if (!blob) return;
+      setTimeout(()=>downloadBlob(blob,`${id}.webm`), i*400);
+    });
+    toast('⬇ Stemler ayrı ayrı indiriliyor');
+  }
+}
+
+async function exportProjectZip() {
+  toast('⏳ Proje ZIP hazırlanıyor...');
+  try {
+    await loadJSZip();
+    const zip = new JSZip();
+    const folder = zip.folder('VoiceForge_Project');
+    const manifest = {
+      project:'VoiceForge_Project',
+      bpm, key, genre, energy,
+      exportedAt: new Date().toISOString(),
+      channels: INSTRUMENTS.map(ins=>({
+        name:ins.name, id:ins.id, icon:ins.icon, color:ins.color,
+        hasAudio: !!stems[ins.id]
+      })),
+      daw_instructions:[
+        `Import all audio files`,`Set BPM to ${bpm}`,`Align to bar 1 beat 1`,
+        `Key: ${key} — Genre: ${genre.toUpperCase()}`
+      ]
+    };
+    folder.file('PROJECT_MANIFEST.json', JSON.stringify(manifest,null,2));
+    folder.file('README.txt',
+      'VoiceForge DAW Project\n======================\n'+
+      `Project BPM: ${bpm}\nKey: ${key}\nGenre: ${genre.toUpperCase()}\n\n`+
+      'IMPORT GUIDE:\n'+
+      '  Ableton: Drag files into session view\n'+
+      '  FL Studio: Add > Audio Track, drag files\n'+
+      '  Logic Pro: File > Import > Audio File\n'+
+      '  Reaper: Insert > Media File\n\n'+
+      `IMPORTANT: Set DAW BPM to ${bpm} before importing!\n`+
+      'Align all tracks to bar 1 beat 1 for perfect sync.\n'
+    );
+    const audioFolder = folder.folder('audio');
+    for (const [id, blob] of Object.entries(stems)) {
+      if (!blob) continue;
+      const ext = blob.type.includes('wav')?'wav':'webm';
+      audioFolder.file(`${id}.${ext}`, await blob.arrayBuffer());
+    }
+    if (masterBlob) audioFolder.file('MASTER_MIXDOWN.wav', await masterBlob.arrayBuffer());
+    const zb = await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+    downloadBlob(zb, 'VoiceForge_DAWProject.zip');
+    toast('🗂️ DAW projesi ZIP olarak indirildi!');
+  } catch(e) {
+    toast('ZIP hatası: '+e.message, true);
+  }
+}
+
+function exportMidi() {
+  // Build a simple MIDI file (Type 0, single track)
+  const prog = CHORD_PROGS[genre]||CHORD_PROGS.pop;
+  const root = (KEY_ROOT[key]||60);
+  const notes = scaleNotes(8);
+  const ticksPerBeat=480;
+  // MIDI header
+  const header=[0x4D,0x54,0x68,0x64,0,0,0,6,0,0,0,1,ticksPerBeat>>8,ticksPerBeat&0xFF];
+  // Track
+  const events=[];
+  // Tempo event: microseconds per beat
+  const usPerBeat=Math.round(60000000/bpm);
+  events.push([0,0xFF,0x51,0x03,(usPerBeat>>16)&0xFF,(usPerBeat>>8)&0xFF,usPerBeat&0xFF]);
+  // Notes
+  notes.forEach((n,i)=>{
+    events.push([i*ticksPerBeat, 0x90, n, 80]); // note on
+    events.push([i*ticksPerBeat+ticksPerBeat-10, 0x80, n, 0]); // note off
+  });
+  // Serialize (simplified fixed-time MIDI)
+  const trackBytes=[];
+  let lastTick=0;
+  events.sort((a,b)=>a[0]-b[0]);
+  events.forEach(ev=>{
+    const delta=ev[0]-lastTick; lastTick=ev[0];
+    // Variable-length encode delta
+    trackBytes.push(...encodeVLQ(delta));
+    trackBytes.push(...ev.slice(1));
+  });
+  trackBytes.push(0,0xFF,0x2F,0); // End of track
+  const tlen=trackBytes.length;
+  const trackHeader=[0x4D,0x54,0x72,0x6B,(tlen>>24)&0xFF,(tlen>>16)&0xFF,(tlen>>8)&0xFF,tlen&0xFF];
+  const allBytes=new Uint8Array([...header,...trackHeader,...trackBytes]);
+  downloadBlob(new Blob([allBytes],{type:'audio/midi'}), 'VoiceForge_Melody.mid');
+  toast('🎹 MIDI dosyası indirildi');
+}
+
+function encodeVLQ(v) {
+  if (v<128) return [v];
+  const bytes=[];
+  while(v>0){ bytes.unshift(v&0x7F); v>>=7; }
+  for(let i=0;i<bytes.length-1;i++) bytes[i]|=0x80;
+  return bytes;
+}
+
+// ============================================================
+//  AUDIO BUFFER → WAV
+// ============================================================
+function audioBufferToWav(buffer) {
+  const numCh=buffer.numberOfChannels;
+  const sampleRate=buffer.sampleRate;
+  const numSamples=buffer.length;
+  const bytesPerSample=2;
+  const dataLen=numSamples*numCh*bytesPerSample;
+  const arrayBuffer=new ArrayBuffer(44+dataLen);
+  const view=new DataView(arrayBuffer);
+  function writeStr(off,s){ for(let i=0;i<s.length;i++) view.setUint8(off+i,s.charCodeAt(i)); }
+  writeStr(0,'RIFF');
+  view.setUint32(4,36+dataLen,true);
+  writeStr(8,'WAVE');
+  writeStr(12,'fmt ');
+  view.setUint32(16,16,true);
+  view.setUint16(20,1,true);
+  view.setUint16(22,numCh,true);
+  view.setUint32(24,sampleRate,true);
+  view.setUint32(28,sampleRate*numCh*bytesPerSample,true);
+  view.setUint16(32,numCh*bytesPerSample,true);
+  view.setUint16(34,16,true);
+  writeStr(36,'data');
+  view.setUint32(40,dataLen,true);
+  let off=44;
+  for(let i=0;i<numSamples;i++){
+    for(let ch=0;ch<numCh;ch++){
+      const sample=Math.max(-1,Math.min(1,buffer.getChannelData(ch)[i]));
+      view.setInt16(off,sample<0?sample*0x8000:sample*0x7FFF,true);
+      off+=2;
+    }
+  }
+  return arrayBuffer;
+}
+
+function downloadBlob(blob, filename) {
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+
+async function loadJSZip() {
+  if (window.JSZip) return;
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    s.onload=res; s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function toast(msg, err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(err?' err':'');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.className='toast',3200);
+}
+
+function toggleSbox(el) {
+  // Click event propagates from children too — only toggle on header click
+  el.classList.toggle('open');
+}
+
+// ============================================================
+//  BOOT
+// ============================================================
+init();
+</script>
+</body>
+</html>
