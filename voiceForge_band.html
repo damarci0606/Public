@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>VoiceForge BAND</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <style>
 :root{
   --bg:#06080e;--panel:#0b0f18;--panel2:#0f1520;--border:#182030;
@@ -15,131 +15,110 @@
   --text:#e0eaf8;--muted:#3a5068;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
+body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   overflow-x:hidden;padding-bottom:calc(20px + env(safe-area-inset-bottom));}
-body::before{content:'';position:fixed;inset:0;
+body::before{content:"";position:fixed;inset:0;
   background-image:linear-gradient(rgba(0,240,192,.018) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,240,192,.018) 1px,transparent 1px);
+  linear-gradient(90deg,rgba(0,240,192,.018) 1px,transparent 1px);
   background-size:40px 40px;pointer-events:none;z-index:0;}
 .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:16px 14px 60px;}
 
-/* HEADER */
 .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-.logo{font-family:'Bebas Neue',cursive;font-size:1.8rem;letter-spacing:4px;
+.logo{font-family:"Bebas Neue",cursive;font-size:1.8rem;letter-spacing:4px;
   background:linear-gradient(135deg,var(--accent),var(--purple));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .logo b{-webkit-text-fill-color:var(--red);}
-.badge{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:2px;
+.badge{font-family:"Space Mono",monospace;font-size:.5rem;letter-spacing:2px;
   color:var(--muted);display:flex;align-items:center;gap:5px;}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 5px var(--accent);}50%{opacity:.3;}}
 
-/* KART */
 .card{background:var(--panel);border:1px solid var(--border);border-radius:20px;
   padding:20px;margin-bottom:14px;position:relative;overflow:hidden;}
-.card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+.card::after{content:"";position:absolute;top:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,var(--accent),transparent);}
-.slbl{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:3px;
+.card.purple::after{background:linear-gradient(90deg,transparent,var(--purple),transparent);}
+.slbl{font-family:"Space Mono",monospace;font-size:.55rem;letter-spacing:3px;
   color:var(--muted);margin-bottom:12px;display:block;}
 
-/* MİKROFON BUTONU */
+/* MİKROFON */
 .mic-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:18px;}
 .mic-btn{width:120px;height:120px;border-radius:50%;border:3px solid var(--red);
   background:radial-gradient(circle at 40% 35%,#220a14,#0e0510);
-  color:var(--red);font-size:3rem;
-  display:flex;align-items:center;justify-content:center;
+  color:var(--red);font-size:3rem;display:flex;align-items:center;justify-content:center;
   cursor:pointer;position:relative;transition:all .3s;touch-action:manipulation;}
 .mic-btn:active{transform:scale(.94);}
 .mic-btn.rec{background:radial-gradient(circle at 40% 35%,var(--red),#8b0020);
-  border-color:var(--red);color:#fff;box-shadow:0 0 50px rgba(255,48,96,.5);
-  animation:recpulse 1.2s ease-in-out infinite;}
+  color:#fff;box-shadow:0 0 50px rgba(255,48,96,.5);animation:recpulse 1.2s ease-in-out infinite;}
 @keyframes recpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
-.ring{position:absolute;inset:-18px;border-radius:50%;
-  border:2px solid var(--red);opacity:0;pointer-events:none;}
+.ring{position:absolute;inset:-18px;border-radius:50%;border:2px solid var(--red);opacity:0;pointer-events:none;}
 .rec .ring{animation:ring 1.8s ease-out infinite;}
 .rec .ring:nth-child(2){animation-delay:.6s;}
 .rec .ring:nth-child(3){animation-delay:1.2s;}
 @keyframes ring{0%{transform:scale(.85);opacity:.6;}100%{transform:scale(1.7);opacity:0;}}
-.mic-lbl{font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:2px;
+.mic-lbl{font-family:"Space Mono",monospace;font-size:.72rem;letter-spacing:2px;
   color:var(--muted);transition:color .3s;text-align:center;}
 .mic-lbl.on{color:var(--red);}
 
-/* CHIPS */
 .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;}
-.chip{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:1px;
+.chip{font-family:"Space Mono",monospace;font-size:.55rem;letter-spacing:1px;
   padding:5px 10px;border-radius:10px;border:1px solid var(--border);color:var(--muted);}
 .chip span{color:var(--accent);}
-
-/* WAVEFORM */
 #waveCanvas{width:100%;height:56px;border-radius:10px;background:var(--panel2);
   border:1px solid var(--border);display:block;margin-bottom:12px;}
-
-/* ALT BUTONLAR */
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .row2 button{padding:13px;border-radius:12px;border:1px solid var(--border);
-  background:var(--panel2);color:var(--muted);font-family:'Space Mono',monospace;
+  background:var(--panel2);color:var(--muted);font-family:"Space Mono",monospace;
   font-size:.62rem;letter-spacing:1px;cursor:pointer;transition:all .2s;touch-action:manipulation;}
 .row2 button:active{transform:scale(.96);}
 .row2 button:disabled{opacity:.25;}
 
-/* ── SES KALİTE PANELİ ── */
-.fx-card{background:var(--panel);border:1px solid var(--border);border-radius:20px;
-  padding:20px;margin-bottom:14px;position:relative;overflow:hidden;}
-.fx-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--purple),transparent);}
-
-/* Kalite göstergesi */
-.qual-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;
-  background:var(--panel2);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;}
-.qual-lbl{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:1px;flex:1;}
-.qual-dots{display:flex;gap:4px;}
-.qdot{width:9px;height:9px;border-radius:50%;background:var(--border);transition:all .4s;}
-.qdot.on{background:var(--accent);box-shadow:0 0 6px var(--accent);}
-.qual-val{font-family:'Bebas Neue',cursive;font-size:1rem;color:var(--accent);min-width:50px;text-align:right;}
-
-/* Toggle butonlar */
+/* FX PANELİ */
 .fx-toggles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
 .ftbtn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);
-  background:var(--panel2);color:var(--muted);font-family:'Space Mono',monospace;
+  background:var(--panel2);color:var(--muted);font-family:"Space Mono",monospace;
   font-size:.58rem;letter-spacing:1px;cursor:pointer;transition:all .2s;touch-action:manipulation;}
 .ftbtn.on{border-color:var(--accent);color:var(--accent);background:rgba(0,240,192,.08);}
-.ftbtn.on-purple{border-color:var(--purple);color:var(--purple);background:rgba(176,96,255,.08);}
+.ftbtn.on2{border-color:var(--purple);color:var(--purple);background:rgba(176,96,255,.08);}
 .ftbtn:active{transform:scale(.94);}
-
-/* Slider satırları */
-.sl-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sl-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .sl-icon{font-size:1.1rem;width:28px;text-align:center;flex-shrink:0;}
-.sl-info{flex:1;}
-.sl-name{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:1px;
+.sl-body{flex:1;}
+.sl-top{font-family:"Space Mono",monospace;font-size:.58rem;letter-spacing:1px;
   color:var(--text);margin-bottom:2px;display:flex;justify-content:space-between;}
-.sl-name span{color:var(--purple);}
 .sl-desc{font-size:.52rem;color:var(--muted);margin-bottom:5px;}
 input[type=range].fxsl{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;
   background:var(--border);outline:none;cursor:pointer;}
-input[type=range].fxsl::-webkit-slider-thumb{-webkit-appearance:none;
-  width:22px;height:22px;border-radius:50%;background:var(--purple);
-  box-shadow:0 0 8px rgba(176,96,255,.5);}
-input[type=range].fxsl.yellow::-webkit-slider-thumb{background:var(--yellow);box-shadow:0 0 8px rgba(255,204,0,.5);}
-input[type=range].fxsl.red::-webkit-slider-thumb{background:var(--red);box-shadow:0 0 8px rgba(255,48,96,.5);}
-input[type=range].fxsl.blue::-webkit-slider-thumb{background:var(--blue);box-shadow:0 0 8px rgba(64,144,255,.5);}
-
-/* Efekt aktif olunca görünen satır */
+input[type=range].fxsl::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;
+  border-radius:50%;background:var(--purple);box-shadow:0 0 8px rgba(176,96,255,.5);}
+input[type=range].fxsl.c-yellow::-webkit-slider-thumb{background:var(--yellow);box-shadow:0 0 8px rgba(255,204,0,.5);}
+input[type=range].fxsl.c-red::-webkit-slider-thumb{background:var(--red);box-shadow:0 0 8px rgba(255,48,96,.5);}
+input[type=range].fxsl.c-blue::-webkit-slider-thumb{background:var(--blue);box-shadow:0 0 8px rgba(64,144,255,.5);}
+input[type=range].fxsl.c-green::-webkit-slider-thumb{background:var(--accent);box-shadow:0 0 8px rgba(0,240,192,.5);}
 .fx-row{display:none;}
-.fx-row.show{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.fx-row.show{display:block;margin-bottom:12px;}
+.gr-meter{background:var(--panel2);border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;margin-bottom:12px;}
+.gr-top{display:flex;justify-content:space-between;margin-bottom:5px;}
+.gr-lbl{font-family:"Space Mono",monospace;font-size:.52rem;color:var(--muted);letter-spacing:1px;}
+#grVal{font-family:"Bebas Neue",cursive;font-size:1rem;color:var(--accent);}
+.gr-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+#grFill{height:100%;width:0%;border-radius:2px;
+  background:linear-gradient(90deg,var(--accent),var(--yellow),var(--red));transition:width .08s;}
 
-/* STİL SEÇİCİ */
+/* STİL */
 .styles-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;}
 .scard{background:var(--panel2);border:1px solid var(--border);border-radius:12px;
   padding:10px 4px;text-align:center;cursor:pointer;transition:all .2s;touch-action:manipulation;}
 .scard:active{transform:scale(.94);}
 .scard.on{border-color:var(--accent);background:rgba(0,240,192,.07);}
 .scard .si{font-size:1.4rem;display:block;margin-bottom:3px;}
-.scard .sn{font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:.5px;color:var(--muted);}
+.scard .sn{font-family:"Space Mono",monospace;font-size:.48rem;letter-spacing:.5px;color:var(--muted);}
 .scard.on .sn{color:var(--accent);}
 
 /* ANA BUTON */
 .main-btn{width:100%;padding:20px;border-radius:16px;border:none;
-  font-family:'Bebas Neue',cursive;font-size:1.5rem;letter-spacing:4px;
+  font-family:"Bebas Neue",cursive;font-size:1.5rem;letter-spacing:4px;
   cursor:pointer;transition:all .25s;touch-action:manipulation;margin-bottom:10px;
   display:flex;align-items:center;justify-content:center;gap:10px;}
 .main-btn:active{transform:scale(.97);}
@@ -152,47 +131,51 @@ input[type=range].fxsl.blue::-webkit-slider-thumb{background:var(--blue);box-sha
 .gen-panel.show{display:block;}
 .prog-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;}
 .prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.prog-title{font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:1px;color:var(--accent);}
-.prog-pct{font-family:'Bebas Neue',cursive;font-size:1.2rem;color:var(--accent);}
+.prog-title{font-family:"Space Mono",monospace;font-size:.62rem;letter-spacing:1px;color:var(--accent);}
+.prog-pct{font-family:"Bebas Neue",cursive;font-size:1.2rem;color:var(--accent);}
 .pbar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:10px;}
 .pfill{height:100%;border-radius:2px;width:0;transition:width .5s;
-  background:linear-gradient(90deg,var(--accent),var(--purple),var(--red));
-  box-shadow:0 0 8px rgba(0,240,192,.4);}
-.plog{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);line-height:1.9;max-height:80px;overflow-y:auto;}
+  background:linear-gradient(90deg,var(--accent),var(--purple),var(--red));box-shadow:0 0 8px rgba(0,240,192,.4);}
+.plog{font-family:"Space Mono",monospace;font-size:.55rem;color:var(--muted);line-height:1.9;max-height:80px;overflow-y:auto;}
 .plog .ok{color:var(--accent);}
+.plog .warn{color:var(--yellow);}
+
+/* ENSTRÜMAN GRID */
 .instr-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;}
 .icard{background:var(--panel2);border:1px solid var(--border);border-radius:10px;
   padding:8px 4px;text-align:center;transition:all .3s;}
 .icard.done{border-color:var(--accent);}
-.icard.active{border-color:var(--yellow);box-shadow:0 0 10px rgba(255,204,0,.2);}
+.icard.active{border-color:var(--yellow);box-shadow:0 0 10px rgba(255,204,0,.3);
+  animation:iact .3s ease-out;}
+@keyframes iact{0%{transform:scale(1.08);}100%{transform:scale(1);}}
 .icard .ii{font-size:1.3rem;display:block;margin-bottom:2px;}
-.icard .in{font-family:'Space Mono',monospace;font-size:.42rem;color:var(--muted);}
+.icard .in{font-family:"Space Mono",monospace;font-size:.42rem;color:var(--muted);}
 .icard.done .in{color:var(--accent);}
 .ibar{height:2px;border-radius:1px;background:var(--border);margin-top:4px;}
-.ifill{height:100%;border-radius:1px;width:0;transition:width .3s;}
+.ifill{height:100%;border-radius:1px;width:0;transition:width .4s;}
 
 /* SONUÇLAR */
 .results{display:none;}
 .results.show{display:block;}
 .result-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;
   padding:16px;margin-bottom:10px;position:relative;overflow:hidden;}
-.result-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+.result-card::after{content:"";position:absolute;top:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,var(--purple),transparent);}
 .rc-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 .rc-icon{font-size:2rem;width:48px;height:48px;border-radius:12px;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .rc-info{flex:1;}
-.rc-name{font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:2px;color:var(--text);}
+.rc-name{font-family:"Bebas Neue",cursive;font-size:1.1rem;letter-spacing:2px;}
 .rc-desc{font-size:.65rem;color:var(--muted);margin-top:2px;}
 .rc-btns{display:flex;gap:8px;}
 .rc-btn{flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);
-  background:var(--panel2);color:var(--muted);font-family:'Space Mono',monospace;
+  background:var(--panel2);color:var(--muted);font-family:"Space Mono",monospace;
   font-size:.58rem;letter-spacing:1px;cursor:pointer;transition:all .2s;
   touch-action:manipulation;text-align:center;}
 .rc-btn:active{transform:scale(.96);}
 .rc-btn.play{border-color:var(--accent);color:var(--accent);background:rgba(0,240,192,.07);}
 .rc-btn.dl{border-color:var(--purple);color:var(--purple);background:rgba(176,96,255,.07);}
-.rc-btn.playing{background:var(--accent);color:#000;border-color:var(--accent);}
+.rc-btn.playing{background:var(--accent);color:#000;}
 .rc-wave{width:100%;height:28px;border-radius:6px;background:var(--panel2);
   border:1px solid var(--border);display:block;margin-bottom:10px;}
 
@@ -201,7 +184,7 @@ input[type=range].fxsl.blue::-webkit-slider-thumb{background:var(--blue);box-sha
   padding:16px;margin-bottom:14px;display:none;}
 .master-card.show{display:block;}
 .chain{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0;}
-.cn{font-family:'Space Mono',monospace;font-size:.5rem;padding:4px 9px;
+.cn{font-family:"Space Mono",monospace;font-size:.5rem;padding:4px 9px;
   border-radius:8px;border:1px solid var(--border);background:var(--panel2);
   color:var(--muted);letter-spacing:1px;transition:all .4s;}
 .cn.act{border-color:var(--yellow);color:var(--yellow);background:rgba(255,204,0,.08);
@@ -210,13 +193,13 @@ input[type=range].fxsl.blue::-webkit-slider-thumb{background:var(--blue);box-sha
 .cn.done{border-color:var(--accent);color:var(--accent);background:rgba(0,240,192,.06);}
 .meters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
 .meter{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;}
-.ml{font-family:'Space Mono',monospace;font-size:.5rem;color:var(--muted);letter-spacing:1px;margin-bottom:4px;}
-.mv{font-family:'Bebas Neue',cursive;font-size:1.3rem;letter-spacing:1px;}
+.ml{font-family:"Space Mono",monospace;font-size:.5rem;color:var(--muted);letter-spacing:1px;margin-bottom:4px;}
+.mv{font-family:"Bebas Neue",cursive;font-size:1.3rem;letter-spacing:1px;}
 
 /* TOAST */
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);
   background:var(--panel);border:1px solid var(--accent);border-radius:12px;
-  padding:11px 18px;font-family:'Space Mono',monospace;font-size:.62rem;
+  padding:11px 18px;font-family:"Space Mono",monospace;font-size:.62rem;
   color:var(--text);z-index:9999;opacity:0;transition:all .3s;
   width:calc(100vw - 40px);max-width:320px;text-align:center;
   box-shadow:0 0 20px rgba(0,240,192,.2);}
@@ -229,7 +212,6 @@ input[type=range].fxsl.blue::-webkit-slider-thumb{background:var(--blue);box-sha
 <body>
 <div class="app">
 
-<!-- HEADER -->
 <div class="hdr">
   <div class="logo">Voice<b>Forge</b></div>
   <div class="badge"><div class="dot"></div>AI BAND</div>
@@ -260,23 +242,23 @@ input[type=range].fxsl.blue::-webkit-slider-thumb{background:var(--blue);box-sha
 </div>
 
 <!-- SES KALİTE PANELİ -->
-<div class="fx-card">
+<div class="card purple">
   <span class="slbl">▍ SES KALİTESİ & EFEKTLER</span>
 
   <!-- Kalite göstergesi -->
-  <div class="qual-bar">
-    <span class="qual-lbl">MİKROFON KALİTESİ</span>
-    <div class="qual-dots">
-      <div class="qdot" id="qd0"></div>
-      <div class="qdot" id="qd1"></div>
-      <div class="qdot" id="qd2"></div>
-      <div class="qdot" id="qd3"></div>
-      <div class="qdot" id="qd4"></div>
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel2);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;">
+    <span style="font-family:Space Mono,monospace;font-size:.55rem;color:var(--muted);letter-spacing:1px;flex:1;">MİKROFON SEVİYESİ</span>
+    <div style="display:flex;gap:4px;" id="qualDots">
+      <div style="width:9px;height:9px;border-radius:50%;background:var(--border);transition:all .3s;" id="qd0"></div>
+      <div style="width:9px;height:9px;border-radius:50%;background:var(--border);transition:all .3s;" id="qd1"></div>
+      <div style="width:9px;height:9px;border-radius:50%;background:var(--border);transition:all .3s;" id="qd2"></div>
+      <div style="width:9px;height:9px;border-radius:50%;background:var(--border);transition:all .3s;" id="qd3"></div>
+      <div style="width:9px;height:9px;border-radius:50%;background:var(--border);transition:all .3s;" id="qd4"></div>
     </div>
-    <span class="qual-val" id="qualVal">—</span>
+    <span id="qualVal" style="font-family:Bebas Neue,cursive;font-size:1rem;color:var(--accent);min-width:50px;text-align:right;">—</span>
   </div>
 
-  <!-- Açma kapama butonları -->
+  <!-- Toggle butonlar -->
   <div class="fx-toggles">
     <button class="ftbtn on" id="ft-gate" onclick="toggleFX(this,'gate')">🔇 GATE</button>
     <button class="ftbtn on" id="ft-eq" onclick="toggleFX(this,'eq')">🎚 EQ</button>
@@ -286,124 +268,102 @@ input[type=range].fxsl.blue::-webkit-slider-thumb{background:var(--blue);box-sha
     <button class="ftbtn" id="ft-wide" onclick="toggleFX(this,'wide')">↔ GENİŞLİK</button>
   </div>
 
-  <!-- HPF - her zaman görünür -->
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-    <span style="font-size:1.1rem;width:28px;text-align:center;">🔈</span>
-    <div style="flex:1;">
-      <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:1px;color:var(--text);margin-bottom:2px;display:flex;justify-content:space-between;">
-        DİP SES KES (HPF) <span id="vl-hpf" style="color:var(--yellow)">80 Hz</span>
-      </div>
-      <div style="font-size:.52rem;color:var(--muted);margin-bottom:5px;">Uğultu, rüzgar, boğukluk temizler</div>
-      <input type="range" class="fxsl yellow" id="sl-hpf" min="40" max="300" value="80" oninput="onFxChange()">
+  <!-- HPF -->
+  <div class="sl-row">
+    <span class="sl-icon">🔈</span>
+    <div class="sl-body">
+      <div class="sl-top">DİP SES KES<span id="vl-hpf" style="color:var(--yellow)">80 Hz</span></div>
+      <div class="sl-desc">Uğultu, rüzgar, boğukluk temizler</div>
+      <input type="range" class="fxsl c-yellow" id="sl-hpf" min="40" max="300" value="80" oninput="onFxChange()">
     </div>
   </div>
 
-  <!-- GATE eşiği - her zaman görünür -->
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-    <span style="font-size:1.1rem;width:28px;text-align:center;">🔕</span>
-    <div style="flex:1;">
-      <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:1px;color:var(--text);margin-bottom:2px;display:flex;justify-content:space-between;">
-        GÜRÜLTÜ GATE <span id="vl-gate" style="color:var(--red)">-45 dB</span>
-      </div>
-      <div style="font-size:.52rem;color:var(--muted);margin-bottom:5px;">Arka plan paraziti, nefes sesleri keser</div>
-      <input type="range" class="fxsl red" id="sl-gate" min="0" max="100" value="40" oninput="onFxChange()">
+  <!-- GATE -->
+  <div class="sl-row">
+    <span class="sl-icon">🔕</span>
+    <div class="sl-body">
+      <div class="sl-top">NOISE GATE<span id="vl-gate" style="color:var(--red)">-45 dB</span></div>
+      <div class="sl-desc">Arka plan paraziti ve nefes seslerini keser</div>
+      <input type="range" class="fxsl c-red" id="sl-gate" min="0" max="100" value="40" oninput="onFxChange()">
     </div>
   </div>
 
-  <!-- COMPRESSOR - her zaman görünür -->
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-    <span style="font-size:1.1rem;width:28px;text-align:center;">🎛️</span>
-    <div style="flex:1;">
-      <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:1px;color:var(--text);margin-bottom:2px;display:flex;justify-content:space-between;">
-        KOMPRESÖR ORANI <span id="vl-ratio" style="color:var(--accent)">3:1</span>
-      </div>
-      <div style="font-size:.52rem;color:var(--muted);margin-bottom:5px;">Ses dinamiğini dengele, patlamayı önle</div>
-      <input type="range" class="fxsl" id="sl-ratio" min="1" max="20" value="3" step="0.5" oninput="onFxChange()">
+  <!-- KOMPRESÖR -->
+  <div class="sl-row">
+    <span class="sl-icon">🎛️</span>
+    <div class="sl-body">
+      <div class="sl-top">KOMPRESÖR ORANI<span id="vl-ratio" style="color:var(--accent)">3:1</span></div>
+      <div class="sl-desc">Ses dinamiğini dengele, patlamayı önle</div>
+      <input type="range" class="fxsl c-green" id="sl-ratio" min="1" max="20" value="3" step="0.5" oninput="onFxChange()">
     </div>
   </div>
 
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-    <span style="font-size:1.1rem;width:28px;text-align:center;">⚡</span>
-    <div style="flex:1;">
-      <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:1px;color:var(--text);margin-bottom:2px;display:flex;justify-content:space-between;">
-        ATTAK <span id="vl-attack" style="color:var(--accent)">8 ms</span>
-      </div>
-      <div style="font-size:.52rem;color:var(--muted);margin-bottom:5px;">Hızlı: transient korur | Yavaş: punch verir</div>
-      <input type="range" class="fxsl" id="sl-attack" min="1" max="100" value="8" oninput="onFxChange()">
+  <div class="sl-row">
+    <span class="sl-icon">⚡</span>
+    <div class="sl-body">
+      <div class="sl-top">ATTAK<span id="vl-attack" style="color:var(--accent)">8 ms</span></div>
+      <div class="sl-desc">Hızlı: transient | Yavaş: punch</div>
+      <input type="range" class="fxsl c-green" id="sl-attack" min="1" max="100" value="8" oninput="onFxChange()">
     </div>
   </div>
 
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-    <span style="font-size:1.1rem;width:28px;text-align:center;">🔁</span>
-    <div style="flex:1;">
-      <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:1px;color:var(--text);margin-bottom:2px;display:flex;justify-content:space-between;">
-        RELEASE <span id="vl-release" style="color:var(--accent)">150 ms</span>
-      </div>
-      <div style="font-size:.52rem;color:var(--muted);margin-bottom:5px;">Kompresör ne kadar süre tutacak</div>
-      <input type="range" class="fxsl" id="sl-release" min="10" max="500" value="150" oninput="onFxChange()">
-    </div>
-  </div>
-
-  <!-- Kompresör preset butonları -->
+  <!-- Kompresör presetleri -->
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
-    <button class="ftbtn on-purple" id="cp-vocal" onclick="setCompPreset('vocal')">🎤 Vokal</button>
+    <button class="ftbtn on2" id="cp-vocal" onclick="setCompPreset('vocal')">🎤 Vokal</button>
     <button class="ftbtn" id="cp-soft" onclick="setCompPreset('soft')">🌊 Yumuşak</button>
     <button class="ftbtn" id="cp-hard" onclick="setCompPreset('hard')">💪 Hard</button>
     <button class="ftbtn" id="cp-limit" onclick="setCompPreset('limit')">🛑 Limiter</button>
   </div>
 
-  <!-- GR metre (gain reduction göstergesi) -->
-  <div style="background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-      <span style="font-family:'Space Mono',monospace;font-size:.52rem;color:var(--muted);letter-spacing:1px;">GAIN REDUCTION</span>
-      <span id="grVal" style="font-family:'Bebas Neue',cursive;font-size:1rem;color:var(--accent)">0.0 dB</span>
+  <!-- GR Metre -->
+  <div class="gr-meter">
+    <div class="gr-top">
+      <span class="gr-lbl">GAIN REDUCTION</span>
+      <span id="grVal">0.0 dB</span>
     </div>
-    <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;">
-      <div id="grBar" style="height:100%;width:0%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--yellow),var(--red));transition:width .1s;"></div>
-    </div>
+    <div class="gr-bar"><div id="grFill"></div></div>
   </div>
 
-  <!-- REVERB - açılınca görünür -->
+  <!-- REVERB -->
   <div class="fx-row" id="row-reverb">
-    <span style="font-size:1.1rem;width:28px;text-align:center;flex-shrink:0;">🏛</span>
-    <div style="flex:1;">
-      <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:1px;color:var(--text);margin-bottom:2px;display:flex;justify-content:space-between;">
-        REVERB MİKTARI <span id="vl-reverb" style="color:var(--purple)">30%</span>
+    <div class="sl-row" style="margin-bottom:8px;">
+      <span class="sl-icon">🏛</span>
+      <div class="sl-body">
+        <div class="sl-top">REVERB<span id="vl-reverb" style="color:var(--purple)">30%</span></div>
+        <div class="sl-desc">Oda / Salon / Plate yankısı</div>
+        <input type="range" class="fxsl" id="sl-reverb" min="0" max="100" value="30" oninput="onFxChange()">
       </div>
-      <div style="font-size:.52rem;color:var(--muted);margin-bottom:5px;">Oda / salon / katedral yankısı</div>
-      <input type="range" class="fxsl" id="sl-reverb" min="0" max="100" value="30" oninput="onFxChange()">
-      <div style="display:flex;gap:6px;margin-top:8px;">
-        <button class="ftbtn on-purple" id="rv-room" onclick="setReverbType('room')">Oda</button>
-        <button class="ftbtn" id="rv-hall" onclick="setReverbType('hall')">Salon</button>
-        <button class="ftbtn" id="rv-plate" onclick="setReverbType('plate')">Plate</button>
-      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button class="ftbtn on2" id="rv-room" onclick="setRevType('room')">Oda</button>
+      <button class="ftbtn" id="rv-hall" onclick="setRevType('hall')">Salon</button>
+      <button class="ftbtn" id="rv-plate" onclick="setRevType('plate')">Plate</button>
     </div>
   </div>
 
-  <!-- EKO - açılınca görünür -->
+  <!-- EKO -->
   <div class="fx-row" id="row-echo">
-    <span style="font-size:1.1rem;width:28px;text-align:center;flex-shrink:0;">🔄</span>
-    <div style="flex:1;">
-      <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:1px;color:var(--text);margin-bottom:2px;display:flex;justify-content:space-between;">
-        EKO / DELAY <span id="vl-echo" style="color:var(--blue)">25%</span>
+    <div class="sl-row">
+      <span class="sl-icon">🔄</span>
+      <div class="sl-body">
+        <div class="sl-top">EKO / DELAY<span id="vl-echo" style="color:var(--blue)">25%</span></div>
+        <div class="sl-desc">BPM senkron gecikme efekti</div>
+        <input type="range" class="fxsl c-blue" id="sl-echo" min="0" max="100" value="25" oninput="onFxChange()">
       </div>
-      <div style="font-size:.52rem;color:var(--muted);margin-bottom:5px;">Gecikme efekti, BPM'e senkron</div>
-      <input type="range" class="fxsl blue" id="sl-echo" min="0" max="100" value="25" oninput="onFxChange()">
     </div>
   </div>
 
-  <!-- GENİŞLİK - açılınca görünür -->
+  <!-- GENİŞLİK -->
   <div class="fx-row" id="row-wide">
-    <span style="font-size:1.1rem;width:28px;text-align:center;flex-shrink:0;">↔</span>
-    <div style="flex:1;">
-      <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:1px;color:var(--text);margin-bottom:2px;display:flex;justify-content:space-between;">
-        STEREO GENİŞLİK <span id="vl-wide" style="color:var(--accent)">40%</span>
+    <div class="sl-row">
+      <span class="sl-icon">↔</span>
+      <div class="sl-body">
+        <div class="sl-top">STEREO GENİŞLİK<span id="vl-wide" style="color:var(--accent)">40%</span></div>
+        <div class="sl-desc">Sesi sola-sağa yay</div>
+        <input type="range" class="fxsl c-green" id="sl-wide" min="0" max="100" value="40" oninput="onFxChange()">
       </div>
-      <div style="font-size:.52rem;color:var(--muted);margin-bottom:5px;">Sesi sola-sağa yay, dolgunlaştır</div>
-      <input type="range" class="fxsl" id="sl-wide" min="0" max="100" value="40" oninput="onFxChange()">
     </div>
   </div>
-
 </div>
 
 <!-- STİL -->
@@ -414,12 +374,12 @@ input[type=range].fxsl.blue::-webkit-slider-thumb{background:var(--blue);box-sha
     <div class="scard" data-style="hiphop" onclick="toggleStyle(this)"><span class="si">🎤</span><span class="sn">HIP HOP</span></div>
     <div class="scard" data-style="rock" onclick="toggleStyle(this)"><span class="si">🎸</span><span class="sn">ROCK</span></div>
     <div class="scard" data-style="edm" onclick="toggleStyle(this)"><span class="si">⚡</span><span class="sn">EDM</span></div>
-    <div class="scard" data-style="rnb" onclick="toggleStyle(this)"><span class="si">🌙</span><span class="sn">R&B</span></div>
+    <div class="scard" data-style="rnb" onclick="toggleStyle(this)"><span class="si">🌙</span><span class="sn">R&amp;B</span></div>
   </div>
   <button class="main-btn btn-gen" id="btnGen" onclick="startGen()" disabled>⚡ BAND ÜRET</button>
 </div>
 
-<!-- ÜRETİM PANELİ -->
+<!-- ÜRETİM -->
 <div class="gen-panel" id="genPanel">
   <div class="prog-card">
     <div class="prog-top">
@@ -437,12 +397,12 @@ input[type=range].fxsl.blue::-webkit-slider-thumb{background:var(--blue);box-sha
   <div class="master-card" id="masterCard">
     <span class="slbl">▍ MIX & MASTER</span>
     <div class="chain">
-      <div class="cn" id="mc1">HPF</div>
-      <div class="cn" id="mc2">EQ</div>
-      <div class="cn" id="mc3">COMP</div>
-      <div class="cn" id="mc4">STEREO</div>
-      <div class="cn" id="mc5">LIMITER</div>
-      <div class="cn" id="mc6">LUFS</div>
+      <div class="cn" id="mc1">EQ</div>
+      <div class="cn" id="mc2">COMP</div>
+      <div class="cn" id="mc3">STEREO</div>
+      <div class="cn" id="mc4">LIMITER</div>
+      <div class="cn" id="mc5">LUFS</div>
+      <div class="cn" id="mc6">DITHER</div>
     </div>
     <div class="meters">
       <div class="meter"><div class="ml">LUFS</div><div class="mv" id="mLufs" style="color:var(--accent)">—</div></div>
@@ -466,716 +426,509 @@ let mediaRec = null, recChunks = [], recBlob = null;
 let recStream = null, analyserNode = null, animFrame = null;
 let isRec = false, recSecs = 0, recTimer = null;
 let pitchAnalyser = null, pitchData = [], onsets = [], msCount = 0;
-let detKey = 'C', detBpm = 95, voiceMelody = [], analysisDone = false;
-let selectedStyles = ['pop'], stems = {}, masterBlobs = {}, currentAudio = null;
-
-// FX node referansları (canlı güncelleme için)
-let fxNodes = {};
-let fxEnabled = { gate: true, eq: true, deess: true, reverb: false, echo: false, wide: false };
-let reverbType = 'room';
+let detKey = "C", detBpm = 95, voiceMelody = [], analysisDone = false;
+let selectedStyles = ["pop"], stems = {}, masterBlobs = {}, currentAudio = null;
+let fxNodes = {}, fxEnabled = {gate:true,eq:true,deess:true,reverb:false,echo:false,wide:false};
+let reverbType = "room";
 
 // ══════════════════════════════════════════════
 //  WAVEFORM
 // ══════════════════════════════════════════════
-const waveEl = document.getElementById('waveCanvas');
-const wctx = waveEl.getContext('2d');
+const waveEl = document.getElementById("waveCanvas");
+const wctx = waveEl.getContext("2d");
 function resizeWave(){
   waveEl.width = waveEl.offsetWidth * devicePixelRatio;
   waveEl.height = waveEl.offsetHeight * devicePixelRatio;
   wctx.scale(devicePixelRatio, devicePixelRatio);
 }
-resizeWave(); window.addEventListener('resize', resizeWave);
-
+resizeWave(); window.addEventListener("resize", resizeWave);
 function drawIdle(){
-  const w = waveEl.offsetWidth, h = waveEl.offsetHeight;
+  const w=waveEl.offsetWidth,h=waveEl.offsetHeight;
   wctx.clearRect(0,0,w,h);
-  wctx.strokeStyle = 'rgba(24,32,48,.9)'; wctx.lineWidth = 1;
-  wctx.beginPath();
-  for(let x=0;x<w;x++){
-    const y = h/2 + Math.sin(x*.04 + Date.now()*.0006)*2;
-    x===0 ? wctx.moveTo(x,y) : wctx.lineTo(x,y);
-  }
-  wctx.stroke();
-  if(!isRec) animFrame = requestAnimationFrame(drawIdle);
+  wctx.strokeStyle="rgba(24,32,48,.9)";wctx.lineWidth=1;wctx.beginPath();
+  for(let x=0;x<w;x++){const y=h/2+Math.sin(x*.04+Date.now()*.0006)*2;x===0?wctx.moveTo(x,y):wctx.lineTo(x,y);}
+  wctx.stroke();if(!isRec)animFrame=requestAnimationFrame(drawIdle);
 }
 function drawLive(){
-  if(!analyserNode) return;
-  const buf = new Uint8Array(analyserNode.frequencyBinCount);
+  if(!analyserNode)return;
+  const buf=new Uint8Array(analyserNode.frequencyBinCount);
   analyserNode.getByteTimeDomainData(buf);
-  const w = waveEl.offsetWidth, h = waveEl.offsetHeight;
-  wctx.clearRect(0,0,w,h);
-  wctx.strokeStyle = '#00f0c0'; wctx.lineWidth = 2;
-  wctx.shadowColor = '#00f0c0'; wctx.shadowBlur = 4;
-  wctx.beginPath();
-  const sw = w/buf.length;
-  for(let i=0;i<buf.length;i++){
-    const y = (buf[i]/128)*(h/2);
-    i===0 ? wctx.moveTo(0,y) : wctx.lineTo(i*sw,y);
-  }
-  wctx.lineTo(w,h/2); wctx.stroke(); wctx.shadowBlur = 0;
-  animFrame = requestAnimationFrame(drawLive);
+  const w=waveEl.offsetWidth,h=waveEl.offsetHeight;
+  wctx.clearRect(0,0,w,h);wctx.strokeStyle="#00f0c0";wctx.lineWidth=2;
+  wctx.shadowColor="#00f0c0";wctx.shadowBlur=4;wctx.beginPath();
+  const sw=w/buf.length;
+  for(let i=0;i<buf.length;i++){const y=(buf[i]/128)*(h/2);i===0?wctx.moveTo(0,y):wctx.lineTo(i*sw,y);}
+  wctx.lineTo(w,h/2);wctx.stroke();wctx.shadowBlur=0;
+  animFrame=requestAnimationFrame(drawLive);
 }
 function drawStored(){
-  const w = waveEl.offsetWidth, h = waveEl.offsetHeight;
-  wctx.clearRect(0,0,w,h);
-  wctx.strokeStyle = '#00f0c0'; wctx.lineWidth = 1.5;
-  wctx.beginPath();
-  for(let x=0;x<w;x++){
-    const y = h/2 + (Math.random()-.5)*(18*Math.sin(x*.07))*Math.abs(Math.sin(x*.022));
-    x===0 ? wctx.moveTo(x,y) : wctx.lineTo(x,y);
-  }
+  const w=waveEl.offsetWidth,h=waveEl.offsetHeight;
+  wctx.clearRect(0,0,w,h);wctx.strokeStyle="#00f0c0";wctx.lineWidth=1.5;wctx.beginPath();
+  for(let x=0;x<w;x++){const y=h/2+(Math.random()-.5)*(18*Math.sin(x*.07))*Math.abs(Math.sin(x*.022));x===0?wctx.moveTo(x,y):wctx.lineTo(x,y);}
   wctx.stroke();
 }
 drawIdle();
 
 // ══════════════════════════════════════════════
-//  FX TOGGLE & SLIDERS
+//  FX
 // ══════════════════════════════════════════════
-function toggleFX(btn, id){
-  fxEnabled[id] = !fxEnabled[id];
-  btn.classList.toggle('on', fxEnabled[id]);
-  // Reverb/echo/wide için slider satırını göster/gizle
-  const row = document.getElementById('row-' + id);
-  if(row) row.classList.toggle('show', fxEnabled[id]);
-  // Eğer kayıt varsa zinciri güncelle
-  if(fxNodes[id]) applyFXState();
-  toast(id.toUpperCase() + (fxEnabled[id] ? ' açıldı ✓' : ' kapatıldı'));
+function toggleFX(btn,id){
+  fxEnabled[id]=!fxEnabled[id];
+  btn.classList.toggle("on",fxEnabled[id]);
+  const row=document.getElementById("row-"+id);
+  if(row)row.classList.toggle("show",fxEnabled[id]);
+  applyFX();
+  toast(id.toUpperCase()+(fxEnabled[id]?" açıldı":" kapatıldı"));
 }
-
-function setReverbType(type){
-  reverbType = type;
-  document.querySelectorAll('[id^=rv-]').forEach(b => b.classList.remove('on-purple'));
-  document.getElementById('rv-' + type).classList.add('on-purple');
-  if(fxNodes.reverbConv) buildReverbIR();
+function setRevType(t){
+  reverbType=t;
+  document.querySelectorAll("[id^=rv-]").forEach(b=>b.classList.remove("on2"));
+  document.getElementById("rv-"+t).classList.add("on2");
+  buildIR();
 }
-
-function onFxChange(){
-  // Slider değerlerini güncelle
-  const hpf = +document.getElementById('sl-hpf').value;
-  const gate = +document.getElementById('sl-gate').value;
-  const reverb = +document.getElementById('sl-reverb').value;
-  const echo = +document.getElementById('sl-echo').value;
-  const wide = +document.getElementById('sl-wide').value;
-
-  const ratio   = +document.getElementById('sl-ratio').value;
-  const attack  = +document.getElementById('sl-attack').value;
-  const release = +document.getElementById('sl-release').value;
-
-  document.getElementById('vl-hpf').textContent    = hpf + ' Hz';
-  document.getElementById('vl-gate').textContent   = (-20 - gate*.4).toFixed(0) + ' dB';
-  document.getElementById('vl-reverb').textContent = reverb + '%';
-  document.getElementById('vl-echo').textContent   = echo + '%';
-  document.getElementById('vl-wide').textContent   = wide + '%';
-  document.getElementById('vl-ratio').textContent  = ratio + ':1';
-  document.getElementById('vl-attack').textContent = attack + ' ms';
-  document.getElementById('vl-release').textContent= release + ' ms';
-
-  // Canlı düğüm güncelle
-  if(fxNodes.hp)   fxNodes.hp.frequency.value = hpf;
-  if(fxNodes.gate) fxNodes.gate.threshold.value = -20 - gate*.4;
-  if(fxNodes.comp){
-    fxNodes.comp.ratio.value   = ratio;
-    fxNodes.comp.attack.value  = attack / 1000;
-    fxNodes.comp.release.value = release / 1000;
-  }
-  if(fxNodes.reverbWet) fxNodes.reverbWet.gain.value = fxEnabled.reverb ? reverb/100*.7 : 0;
-  if(fxNodes.reverbDry) fxNodes.reverbDry.gain.value = 1 - (fxEnabled.reverb ? reverb/100*.5 : 0);
-  if(fxNodes.echoWet)   fxNodes.echoWet.gain.value   = fxEnabled.echo ? echo/100*.6 : 0;
-  if(fxNodes.wideGain)  fxNodes.wideGain.gain.value  = fxEnabled.wide ? wide/100 : 0;
-}
-
-// Kompresör preset'leri
-function setCompPreset(preset){
-  document.querySelectorAll('[id^=cp-]').forEach(b=>b.classList.remove('on-purple'));
-  document.getElementById('cp-'+preset).classList.add('on-purple');
-  const presets = {
-    vocal:  { ratio:3,   attack:8,   release:150 },  // dengeli vokal
-    soft:   { ratio:1.5, attack:30,  release:300 },  // doğal, hafif
-    hard:   { ratio:8,   attack:3,   release:80  },  // agresif, pumping
-    limit:  { ratio:20,  attack:1,   release:50  },  // brick wall
-  };
-  const p = presets[preset];
-  document.getElementById('sl-ratio').value   = p.ratio;
-  document.getElementById('sl-attack').value  = p.attack;
-  document.getElementById('sl-release').value = p.release;
+function setCompPreset(p){
+  document.querySelectorAll("[id^=cp-]").forEach(b=>b.classList.remove("on2"));
+  document.getElementById("cp-"+p).classList.add("on2");
+  const P={vocal:{r:3,a:8},soft:{r:1.5,a:30},hard:{r:8,a:3},limit:{r:20,a:1}};
+  document.getElementById("sl-ratio").value=P[p].r;
+  document.getElementById("sl-attack").value=P[p].a;
   onFxChange();
-  const names = {vocal:'🎤 Vokal preset',soft:'🌊 Yumuşak preset',hard:'💪 Hard preset',limit:'🛑 Limiter preset'};
-  toast(names[preset]+' ✓');
+  toast({vocal:"🎤 Vokal",soft:"🌊 Yumuşak",hard:"💪 Hard",limit:"🛑 Limiter"}[p]+" preset ✓");
 }
-
-// Gain reduction metre güncelle (animasyon frame'inde)
-function updateGRMeter(){
-  if(!fxNodes.comp || !isRec) return;
-  const gr = Math.abs(fxNodes.comp.reduction);
-  const pct = Math.min(100, gr * 6);
-  document.getElementById('grBar').style.width = pct+'%';
-  document.getElementById('grVal').textContent = '-'+gr.toFixed(1)+' dB';
-  requestAnimationFrame(updateGRMeter);
+function onFxChange(){
+  const hpf=+document.getElementById("sl-hpf").value;
+  const gate=+document.getElementById("sl-gate").value;
+  const ratio=+document.getElementById("sl-ratio").value;
+  const attack=+document.getElementById("sl-attack").value;
+  const reverb=+document.getElementById("sl-reverb").value;
+  const echo=+document.getElementById("sl-echo").value;
+  const wide=+document.getElementById("sl-wide").value;
+  document.getElementById("vl-hpf").textContent=hpf+" Hz";
+  document.getElementById("vl-gate").textContent=(-20-gate*.4).toFixed(0)+" dB";
+  document.getElementById("vl-ratio").textContent=ratio+":1";
+  document.getElementById("vl-attack").textContent=attack+" ms";
+  document.getElementById("vl-reverb").textContent=reverb+"%";
+  document.getElementById("vl-echo").textContent=echo+"%";
+  document.getElementById("vl-wide").textContent=wide+"%";
+  if(fxNodes.hp)fxNodes.hp.frequency.value=hpf;
+  if(fxNodes.gate){fxNodes.gate.threshold.value=fxEnabled.gate?(-20-gate*.4):-100;}
+  if(fxNodes.comp){fxNodes.comp.ratio.value=ratio;fxNodes.comp.attack.value=attack/1000;}
+  if(fxNodes.revWet)fxNodes.revWet.gain.value=fxEnabled.reverb?reverb/100*.7:0;
+  if(fxNodes.revDry)fxNodes.revDry.gain.value=1-(fxEnabled.reverb?reverb/100*.5:0);
+  if(fxNodes.echoWet)fxNodes.echoWet.gain.value=fxEnabled.echo?echo/100*.6:0;
+  if(fxNodes.wideG)fxNodes.wideG.gain.value=fxEnabled.wide?wide/100:0;
 }
-
-function applyFXState(){
-  onFxChange(); // Mevcut slider değerlerini uygula
-}
-
-// Kalite göstergesi güncelle
+function applyFX(){ onFxChange(); }
 function updateQuality(rms){
-  const db = rms > 0 ? 20*Math.log10(rms) : -100;
-  const score = Math.min(5, Math.max(0, Math.round((db + 60)/12)));
-  for(let i=0;i<5;i++) document.getElementById('qd'+i).classList.toggle('on', i<score);
-  const labels = ['—','ZAYIF','ORTA','İYİ','ÇOK İYİ','MÜKEMMEL'];
-  document.getElementById('qualVal').textContent = labels[score] || '—';
-}
-
-// ══════════════════════════════════════════════
-//  REVERB IR BUILDER
-// ══════════════════════════════════════════════
-function buildReverbIR(){
-  if(!actx || !fxNodes.reverbConv) return;
-  const durations = { room: 0.8, hall: 2.2, plate: 1.4 };
-  const decays    = { room: 1.8, hall: 3.0, plate: 2.2 };
-  const dur = durations[reverbType] || 1.0;
-  const dec = decays[reverbType] || 2.0;
-  const len = actx.sampleRate * dur;
-  const ir  = actx.createBuffer(2, len, actx.sampleRate);
-  for(let ch=0; ch<2; ch++){
-    const d = ir.getChannelData(ch);
-    for(let i=0;i<len;i++){
-      d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, dec);
-    }
+  const db=rms>0?20*Math.log10(rms):-100;
+  const s=Math.min(5,Math.max(0,Math.round((db+60)/12)));
+  for(let i=0;i<5;i++){
+    const d=document.getElementById("qd"+i);
+    d.style.background=i<s?"var(--accent)":"var(--border)";
+    d.style.boxShadow=i<s?"0 0 5px var(--accent)":"none";
   }
-  fxNodes.reverbConv.buffer = ir;
+  document.getElementById("qualVal").textContent=["—","ZAYIF","ORTA","İYİ","ÇOK İYİ","MÜKEMMEL"][s]||"—";
+}
+function buildIR(){
+  if(!actx||!fxNodes.rev)return;
+  const D={room:0.8,hall:2.2,plate:1.4},DC={room:1.8,hall:3.0,plate:2.2};
+  const dur=D[reverbType]||1,dec=DC[reverbType]||2;
+  const len=actx.sampleRate*dur,ir=actx.createBuffer(2,len,actx.sampleRate);
+  for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,dec);}
+  fxNodes.rev.buffer=ir;
+}
+function grLoop(){
+  if(!fxNodes.comp||!isRec)return;
+  const gr=Math.abs(fxNodes.comp.reduction);
+  document.getElementById("grFill").style.width=Math.min(100,gr*6)+"%";
+  document.getElementById("grVal").textContent="-"+gr.toFixed(1)+" dB";
+  requestAnimationFrame(grLoop);
 }
 
 // ══════════════════════════════════════════════
 //  KAYIT
 // ══════════════════════════════════════════════
-async function toggleRec(){ if(isRec) stopRec(); else await startRec(); }
-
+async function toggleRec(){ if(isRec)stopRec(); else await startRec(); }
 async function startRec(){
   try{
-    recStream = await navigator.mediaDevices.getUserMedia({
-      audio:{
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl:  false,
-        sampleRate: 48000,
-        channelCount: 1
-      }
+    recStream=await navigator.mediaDevices.getUserMedia({
+      audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,sampleRate:48000,channelCount:1}
     });
-
-    actx = new AC({ sampleRate: 48000 });
-    const src = actx.createMediaStreamSource(recStream);
-
-    // ══ STÜDYO SES ZINCIRI ══
-    // 1. HIGH-PASS FİLTRE — dip gürültü, uğultu kes
-    const hp = actx.createBiquadFilter();
-    hp.type = 'highpass';
-    hp.frequency.value = +document.getElementById('sl-hpf').value;
-    hp.Q.value = 0.7;
-    fxNodes.hp = hp;
-
-    // 2. LOW-PASS — yüksek frekans dijital gürültü
-    const lp = actx.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = 18000; lp.Q.value = 0.5;
-
-    // 3. DE-ESSER — "s/ş" sibilance kesme
-    const deEss = actx.createBiquadFilter();
-    deEss.type = 'peaking'; deEss.frequency.value = 7500;
-    deEss.Q.value = 4.0;
-    deEss.gain.value = fxEnabled.deess ? -6 : 0;
-    fxNodes.deEss = deEss;
-
-    // 4. MUD kesme — boğuk, burunlu 300Hz bölgesi
-    const mud = actx.createBiquadFilter();
-    mud.type = 'peaking'; mud.frequency.value = 300;
-    mud.Q.value = 1.5;
-    mud.gain.value = fxEnabled.eq ? -3 : 0;
-    fxNodes.mud = mud;
-
-    // 5. LOW-MID scoop — kutu sesi 400Hz
-    const lmid = actx.createBiquadFilter();
-    lmid.type = 'peaking'; lmid.frequency.value = 400;
-    lmid.Q.value = 1.2;
-    lmid.gain.value = fxEnabled.eq ? -2 : 0;
-    fxNodes.lmid = lmid;
-
-    // 6. PRESENCE açma — netlik 2.5kHz
-    const pres = actx.createBiquadFilter();
-    pres.type = 'peaking'; pres.frequency.value = 2500;
-    pres.Q.value = 1.2;
-    pres.gain.value = fxEnabled.eq ? 2.5 : 0;
-    fxNodes.pres = pres;
-
-    // 7. AIR — hava/parlaklık 12kHz
-    const air = actx.createBiquadFilter();
-    air.type = 'highshelf'; air.frequency.value = 12000;
-    air.gain.value = fxEnabled.eq ? 2 : 0;
-    fxNodes.air = air;
-
-    // 8. NOISE GATE — arka plan paraziti kapat
-    const gate = actx.createDynamicsCompressor();
-    const gateThresh = -20 - (+document.getElementById('sl-gate').value) * 0.4;
-    gate.threshold.value = fxEnabled.gate ? gateThresh : -100;
-    gate.knee.value = 2; gate.ratio.value = 15;
-    gate.attack.value = 0.002; gate.release.value = 0.1;
-    fxNodes.gate = gate;
-
-    // 9. KOMPRESÖR — tam ayarlanabilir
-    const comp = actx.createDynamicsCompressor();
-    comp.threshold.value = -18;
-    comp.knee.value = 8;
-    comp.ratio.value   = +document.getElementById('sl-ratio').value;
-    comp.attack.value  = +document.getElementById('sl-attack').value / 1000;
-    comp.release.value = +document.getElementById('sl-release').value / 1000;
-    fxNodes.comp = comp;
-    // GR metre başlat
-    setTimeout(updateGRMeter, 500);
-
-    // 10. REVERB — konvolüsyon
-    const reverbConv = actx.createConvolver();
-    fxNodes.reverbConv = reverbConv;
-    buildReverbIR();
-    const reverbWet = actx.createGain();
-    const reverbDry = actx.createGain();
-    const reverbMix = actx.createGain();
-    reverbMix.gain.value = 1;
-    const rev = +document.getElementById('sl-reverb').value;
-    reverbWet.gain.value = fxEnabled.reverb ? rev/100*.7 : 0;
-    reverbDry.gain.value = 1;
-    fxNodes.reverbWet = reverbWet;
-    fxNodes.reverbDry = reverbDry;
-
-    // 11. EKO / DELAY — BPM senkron
-    const delayNode = actx.createDelay(2.0);
-    delayNode.delayTime.value = (60/detBpm) * 0.5; // yarım vuruş
-    const echoFb = actx.createGain(); echoFb.gain.value = 0.35;
-    const echoWet = actx.createGain();
-    const ech = +document.getElementById('sl-echo').value;
-    echoWet.gain.value = fxEnabled.echo ? ech/100*.6 : 0;
-    fxNodes.echoWet = echoWet;
-    // Delay feedback loop
-    delayNode.connect(echoFb); echoFb.connect(delayNode);
-
-    // 12. STEREO GENİŞLİK — L/R ayrıştırma
-    const merger = actx.createChannelMerger(2);
-    const splitter = actx.createChannelSplitter(2);
-    const wideGain = actx.createGain();
-    const wd = +document.getElementById('sl-wide').value;
-    wideGain.gain.value = fxEnabled.wide ? wd/100 : 0;
-    fxNodes.wideGain = wideGain;
-
-    // 13. ÇIKIŞ GAIN
-    const outG = actx.createGain(); outG.gain.value = 1.0;
-
-    // ══ ZİNCİR BAĞLANTILARI ══
-    src.connect(hp);
-    hp.connect(lp);
-    lp.connect(deEss);
-    deEss.connect(mud);
-    mud.connect(lmid);
-    lmid.connect(pres);
-    pres.connect(air);
-    air.connect(gate);
-    gate.connect(comp);
-
-    // Reverb dallanma
-    comp.connect(reverbDry);
-    comp.connect(reverbConv);
-    reverbConv.connect(reverbWet);
-    reverbDry.connect(outG);
-    reverbWet.connect(outG);
-
-    // Eko dallanma
-    comp.connect(delayNode);
-    delayNode.connect(echoWet);
-    echoWet.connect(outG);
-
-    // Görsel analyser — işlenmiş sesten
-    analyserNode = actx.createAnalyser(); analyserNode.fftSize = 2048;
-    outG.connect(analyserNode);
-
-    // Pitch analizi — ham kaynaktan
-    pitchAnalyser = actx.createAnalyser();
-    pitchAnalyser.fftSize = 2048; pitchAnalyser.smoothingTimeConstant = 0;
-    src.connect(pitchAnalyser);
-
-    // Kayıt çıkışı
-    const dest = actx.createMediaStreamDestination();
-    outG.connect(dest);
-
-    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-      ? 'audio/webm;codecs=opus' : 'audio/webm';
-    mediaRec = new MediaRecorder(dest.stream, { mimeType: mime, audioBitsPerSecond: 256000 });
-    recChunks = [];
-    mediaRec.ondataavailable = e => { if(e.data.size>0) recChunks.push(e.data); };
-    mediaRec.onstop = onRecStop;
-    mediaRec.start(100);
-
-    isRec = true; pitchData = []; onsets = []; msCount = 0;
-    document.getElementById('micBtn').classList.add('rec');
-    document.getElementById('micLbl').textContent = 'DURDURMAK İÇİN BAS';
-    document.getElementById('micLbl').classList.add('on');
-    document.getElementById('cStat').textContent = 'Kayıt';
-    document.getElementById('cStat').style.color = 'var(--red)';
-
-    recSecs = 0;
-    recTimer = setInterval(()=>{
-      msCount += 50;
-      if(msCount % 1000 === 0){
-        recSecs++;
-        const m = Math.floor(recSecs/60), s = recSecs%60;
-        document.getElementById('cDur').textContent = m+':'+String(s).padStart(2,'0');
-        // Delay zamanını BPM'e güncelle
-        if(fxNodes.delay) fxNodes.delay.delayTime.value = (60/detBpm)*.5;
-      }
+    actx=new AC({sampleRate:48000});
+    const src=actx.createMediaStreamSource(recStream);
+    const hp=actx.createBiquadFilter();hp.type="highpass";hp.frequency.value=+document.getElementById("sl-hpf").value;hp.Q.value=0.7;
+    const lp=actx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=18000;lp.Q.value=0.5;
+    const deEss=actx.createBiquadFilter();deEss.type="peaking";deEss.frequency.value=7500;deEss.Q.value=4;deEss.gain.value=fxEnabled.deess?-6:0;
+    const mud=actx.createBiquadFilter();mud.type="peaking";mud.frequency.value=300;mud.Q.value=1.5;mud.gain.value=fxEnabled.eq?-3:0;
+    const lmid=actx.createBiquadFilter();lmid.type="peaking";lmid.frequency.value=400;lmid.Q.value=1.2;lmid.gain.value=fxEnabled.eq?-2:0;
+    const pres=actx.createBiquadFilter();pres.type="peaking";pres.frequency.value=2500;pres.Q.value=1.2;pres.gain.value=fxEnabled.eq?2.5:0;
+    const air=actx.createBiquadFilter();air.type="highshelf";air.frequency.value=12000;air.gain.value=fxEnabled.eq?2:0;
+    const gate=actx.createDynamicsCompressor();
+    const gThr=-20-(+document.getElementById("sl-gate").value)*.4;
+    gate.threshold.value=fxEnabled.gate?gThr:-100;gate.knee.value=2;gate.ratio.value=15;gate.attack.value=0.002;gate.release.value=0.1;
+    const comp=actx.createDynamicsCompressor();
+    comp.threshold.value=-18;comp.knee.value=8;comp.ratio.value=+document.getElementById("sl-ratio").value;comp.attack.value=+document.getElementById("sl-attack").value/1000;comp.release.value=0.15;
+    const rev=actx.createConvolver();
+    const revWet=actx.createGain();const revDry=actx.createGain();
+    revWet.gain.value=fxEnabled.reverb?+document.getElementById("sl-reverb").value/100*.7:0;
+    revDry.gain.value=1;
+    const delay=actx.createDelay(2);delay.delayTime.value=(60/detBpm)*.5;
+    const echoFb=actx.createGain();echoFb.gain.value=0.35;
+    const echoWet=actx.createGain();echoWet.gain.value=fxEnabled.echo?+document.getElementById("sl-echo").value/100*.6:0;
+    delay.connect(echoFb);echoFb.connect(delay);
+    const wideG=actx.createGain();wideG.gain.value=fxEnabled.wide?+document.getElementById("sl-wide").value/100:0;
+    const outG=actx.createGain();outG.gain.value=1.0;
+    fxNodes={hp,lp,deEss,mud,lmid,pres,air,gate,comp,rev,revWet,revDry,delay,echoWet,wideG};
+    buildIR();
+    src.connect(hp);hp.connect(lp);lp.connect(deEss);deEss.connect(mud);mud.connect(lmid);lmid.connect(pres);pres.connect(air);air.connect(gate);gate.connect(comp);
+    comp.connect(revDry);comp.connect(rev);rev.connect(revWet);revDry.connect(outG);revWet.connect(outG);
+    comp.connect(delay);delay.connect(echoWet);echoWet.connect(outG);
+    analyserNode=actx.createAnalyser();analyserNode.fftSize=2048;outG.connect(analyserNode);
+    pitchAnalyser=actx.createAnalyser();pitchAnalyser.fftSize=2048;pitchAnalyser.smoothingTimeConstant=0;src.connect(pitchAnalyser);
+    const dest=actx.createMediaStreamDestination();outG.connect(dest);
+    const mime=MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus":"audio/webm";
+    mediaRec=new MediaRecorder(dest.stream,{mimeType:mime,audioBitsPerSecond:256000});
+    recChunks=[];mediaRec.ondataavailable=e=>{if(e.data.size>0)recChunks.push(e.data);};mediaRec.onstop=onRecStop;mediaRec.start(100);
+    isRec=true;pitchData=[];onsets=[];msCount=0;
+    document.getElementById("micBtn").classList.add("rec");
+    document.getElementById("micLbl").textContent="DURDURMAK İÇİN BAS";
+    document.getElementById("micLbl").classList.add("on");
+    document.getElementById("cStat").textContent="Kayıt";
+    document.getElementById("cStat").style.color="var(--red)";
+    recSecs=0;
+    recTimer=setInterval(()=>{
+      msCount+=50;
+      if(msCount%1000===0){recSecs++;const m=Math.floor(recSecs/60),s=recSecs%60;document.getElementById("cDur").textContent=m+":"+String(s).padStart(2,"0");}
       doYIN();
-    }, 50);
-
-    cancelAnimationFrame(animFrame); drawLive();
-    toast('🔴 Kayıt başladı! Efektler aktif.');
-
-  } catch(e){
-    toast('Mikrofon izni gerekli!', true);
-    console.error(e);
-  }
+    },50);
+    cancelAnimationFrame(animFrame);drawLive();grLoop();
+    toast("🔴 Kayıt başladı!");
+  }catch(e){toast("Mikrofon izni gerekli!",true);console.error(e);}
 }
-
 function stopRec(){
-  if(mediaRec?.state !== 'inactive') mediaRec.stop();
-  isRec = false;
-  clearInterval(recTimer);
-  recStream?.getTracks().forEach(t => t.stop());
-  document.getElementById('micBtn').classList.remove('rec');
-  document.getElementById('micLbl').textContent = 'KAYIT TAMAMLANDI';
-  document.getElementById('micLbl').classList.remove('on');
+  if(mediaRec?.state!=="inactive")mediaRec.stop();
+  isRec=false;clearInterval(recTimer);recStream?.getTracks().forEach(t=>t.stop());
+  document.getElementById("micBtn").classList.remove("rec");
+  document.getElementById("micLbl").textContent="KAYIT TAMAMLANDI";
+  document.getElementById("micLbl").classList.remove("on");
 }
-
 function onRecStop(){
-  recBlob = new Blob(recChunks, { type: 'audio/webm' });
-  stems.vocal = recBlob;
-  cancelAnimationFrame(animFrame); drawStored();
-  if(pitchData.length > 5){
-    detKey  = detectKey(pitchData.map(p => p.midi));
-    detBpm  = estimateBPM(onsets, recSecs);
-    voiceMelody = buildMelody(pitchData);
-    analysisDone = true;
-    document.getElementById('cPitch').textContent = detKey;
-    document.getElementById('cBpm').textContent   = detBpm;
-    document.getElementById('cBpmWrap').style.display = '';
-    // Delay zamanını güncelle
-    if(fxNodes.delay) fxNodes.delay.delayTime.value = (60/detBpm)*.5;
-    toast('🎵 Key: '+detKey+' — BPM: '+detBpm+' — '+voiceMelody.length+' nota');
+  recBlob=new Blob(recChunks,{type:"audio/webm"});stems.vocal=recBlob;
+  cancelAnimationFrame(animFrame);drawStored();
+  if(pitchData.length>5){
+    detKey=detectKey(pitchData.map(p=>p.midi));
+    detBpm=estimateBPM(onsets,recSecs);
+    voiceMelody=buildMelody(pitchData);analysisDone=true;
+    document.getElementById("cPitch").textContent=detKey;
+    document.getElementById("cBpm").textContent=detBpm;
+    document.getElementById("cBpmWrap").style.display="";
+    toast("🎵 Key: "+detKey+" — BPM: "+detBpm+" — "+voiceMelody.length+" nota");
   }
-  document.getElementById('btnPlay').disabled  = false;
-  document.getElementById('btnClear').disabled = false;
-  document.getElementById('btnGen').disabled   = false;
-  document.getElementById('cStat').textContent = 'Hazır';
-  document.getElementById('cStat').style.color = 'var(--accent)';
+  document.getElementById("btnPlay").disabled=false;
+  document.getElementById("btnClear").disabled=false;
+  document.getElementById("btnGen").disabled=false;
+  document.getElementById("cStat").textContent="Hazır";
+  document.getElementById("cStat").style.color="var(--accent)";
 }
-
-function playRaw(){
-  if(!recBlob) return;
-  const url = URL.createObjectURL(recBlob);
-  new Audio(url).play();
-  toast('▶ Ses oynatılıyor');
-}
-
+function playRaw(){if(!recBlob)return;new Audio(URL.createObjectURL(recBlob)).play();toast("▶ Ses oynatılıyor");}
 function clearRec(){
-  recBlob = null; stems = {}; voiceMelody = [];
-  pitchData = []; onsets = []; analysisDone = false; fxNodes = {};
-  document.getElementById('btnPlay').disabled  = true;
-  document.getElementById('btnClear').disabled = true;
-  document.getElementById('btnGen').disabled   = true;
-  document.getElementById('cDur').textContent  = '0:00';
-  document.getElementById('cStat').textContent = 'Hazır';
-  document.getElementById('cStat').style.color = '';
-  document.getElementById('cPitch').textContent = '—';
-  document.getElementById('cBpmWrap').style.display = 'none';
-  document.getElementById('micLbl').textContent = 'KAYIT BAŞLAT';
-  cancelAnimationFrame(animFrame); drawIdle();
-  toast('🗑 Temizlendi');
+  recBlob=null;stems={};voiceMelody=[];pitchData=[];onsets=[];analysisDone=false;fxNodes={};
+  document.getElementById("btnPlay").disabled=true;document.getElementById("btnClear").disabled=true;document.getElementById("btnGen").disabled=true;
+  document.getElementById("cDur").textContent="0:00";document.getElementById("cStat").textContent="Hazır";document.getElementById("cStat").style.color="";
+  document.getElementById("cPitch").textContent="—";document.getElementById("cBpmWrap").style.display="none";
+  document.getElementById("micLbl").textContent="KAYIT BAŞLAT";cancelAnimationFrame(animFrame);drawIdle();toast("🗑 Temizlendi");
 }
 
 // ══════════════════════════════════════════════
-//  YIN PITCH DETECTION
+//  PITCH DETECTION
 // ══════════════════════════════════════════════
 function doYIN(){
-  if(!pitchAnalyser) return;
-  const buf = new Float32Array(pitchAnalyser.fftSize);
-  pitchAnalyser.getFloatTimeDomainData(buf);
-  let rms = 0;
-  for(let i=0;i<buf.length;i++) rms += buf[i]*buf[i];
-  rms = Math.sqrt(rms/buf.length);
+  if(!pitchAnalyser)return;
+  const buf=new Float32Array(pitchAnalyser.fftSize);pitchAnalyser.getFloatTimeDomainData(buf);
+  let rms=0;for(let i=0;i<buf.length;i++)rms+=buf[i]*buf[i];rms=Math.sqrt(rms/buf.length);
   updateQuality(rms);
-  if(rms > 0.008){
-    const freq = yin(buf, 48000);
-    const midi = freq > 0 ? Math.round(12*Math.log2(freq/440)+69) : -1;
-    const now  = recSecs + (msCount%1000)/1000;
-    pitchData.push({ midi, time: now });
-    if(rms > 0.015) onsets.push(now);
-    if(midi >= 48 && midi <= 84){
-      const nn = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-      document.getElementById('cPitch').textContent = nn[midi%12] + (Math.floor(midi/12)-1);
-    }
+  if(rms>0.008){
+    const freq=yin(buf,48000);const midi=freq>0?Math.round(12*Math.log2(freq/440)+69):-1;
+    const now=recSecs+(msCount%1000)/1000;pitchData.push({midi,time:now});
+    if(rms>0.015)onsets.push(now);
+    if(midi>=48&&midi<=84){const nn=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];document.getElementById("cPitch").textContent=nn[midi%12]+(Math.floor(midi/12)-1);}
   }
 }
-
-function yin(buf, sr){
-  const n = buf.length, half = Math.floor(n/2);
-  const d = new Float32Array(half);
-  for(let t=1;t<half;t++){
-    let s = 0;
-    for(let i=0;i<half;i++){ const x = buf[i]-buf[i+t]; s+=x*x; }
-    d[t] = s;
-  }
-  d[0] = 1; let run = 0;
-  for(let t=1;t<half;t++){ run+=d[t]; d[t]*=t/run; }
-  for(let t=2;t<half;t++){
-    if(d[t]<0.12){
-      while(t+1<half && d[t+1]<d[t]) t++;
-      const p=d[t-1]??d[t], c=d[t], nx=d[t+1]??d[t];
-      const dn = p-2*c+nx;
-      return sr/(t + (dn ? 0.5*(p-nx)/dn : 0));
-    }
-  }
+function yin(buf,sr){
+  const n=buf.length,half=Math.floor(n/2),d=new Float32Array(half);
+  for(let t=1;t<half;t++){let s=0;for(let i=0;i<half;i++){const x=buf[i]-buf[i+t];s+=x*x;}d[t]=s;}
+  d[0]=1;let run=0;for(let t=1;t<half;t++){run+=d[t];d[t]*=t/run;}
+  for(let t=2;t<half;t++){if(d[t]<0.12){while(t+1<half&&d[t+1]<d[t])t++;const p=d[t-1]??d[t],c=d[t],nx=d[t+1]??d[t],dn=p-2*c+nx;return sr/(t+(dn?0.5*(p-nx)/dn:0));}}
   return -1;
 }
-
 function detectKey(midis){
-  const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-  const cv = new Array(12).fill(0);
-  midis.forEach(m => { if(m>=0) cv[m%12]++; });
-  const mp = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
-  let bk='C', bs=-Infinity;
-  for(let r=0;r<12;r++){
-    let s=0; for(let i=0;i<12;i++) s+=cv[(i+r)%12]*mp[i];
-    if(s>bs){bs=s; bk=names[r];}
-  }
+  const names=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"],cv=new Array(12).fill(0);
+  midis.forEach(m=>{if(m>=0)cv[m%12]++;});
+  const mp=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+  let bk="C",bs=-Infinity;
+  for(let r=0;r<12;r++){let s=0;for(let i=0;i<12;i++)s+=cv[(i+r)%12]*mp[i];if(s>bs){bs=s;bk=names[r];}}
   return bk;
 }
-
-function estimateBPM(ons, dur){
-  if(ons.length<3) return 95;
-  const iois = [];
-  for(let i=1;i<ons.length;i++) iois.push(ons[i]-ons[i-1]);
-  iois.sort((a,b)=>a-b);
-  const med = iois[Math.floor(iois.length/2)];
-  let b = med > 0 ? 60/med : 95;
-  while(b<60) b*=2; while(b>180) b/=2;
-  return Math.round(b);
+function estimateBPM(ons,dur){
+  if(ons.length<3)return 95;const iois=[];for(let i=1;i<ons.length;i++)iois.push(ons[i]-ons[i-1]);
+  iois.sort((a,b)=>a-b);const med=iois[Math.floor(iois.length/2)];let b=med>0?60/med:95;
+  while(b<60)b*=2;while(b>180)b/=2;return Math.round(b);
 }
-
 function buildMelody(pd){
-  const out=[]; let cur=null;
-  pd.forEach(p=>{
-    if(p.midi<0){ if(cur) out.push(cur); cur=null; return; }
-    if(!cur || cur.midi!==p.midi){ if(cur) out.push(cur); cur={midi:p.midi,t:p.time,dur:0.05}; }
-    else cur.dur+=0.05;
-  });
-  if(cur) out.push(cur);
-  return out.filter(n=>n.dur>0.08);
+  const out=[];let cur=null;
+  pd.forEach(p=>{if(p.midi<0){if(cur)out.push(cur);cur=null;return;}if(!cur||cur.midi!==p.midi){if(cur)out.push(cur);cur={midi:p.midi,t:p.time,dur:0.05};}else cur.dur+=0.05;});
+  if(cur)out.push(cur);return out.filter(n=>n.dur>0.08);
 }
-
-// ══════════════════════════════════════════════
-//  STİL SEÇİCİ
-// ══════════════════════════════════════════════
 function toggleStyle(el){
-  el.classList.toggle('on');
-  selectedStyles = [...document.querySelectorAll('.scard.on')].map(e=>e.dataset.style);
-  if(selectedStyles.length===0){ el.classList.add('on'); selectedStyles=[el.dataset.style]; }
+  el.classList.toggle("on");selectedStyles=[...document.querySelectorAll(".scard.on")].map(e=>e.dataset.style);
+  if(selectedStyles.length===0){el.classList.add("on");selectedStyles=[el.dataset.style];}
 }
 
 // ══════════════════════════════════════════════
 //  MÜZİK TEORİSİ
 // ══════════════════════════════════════════════
-const KEY_ROOT = {C:60,D:62,E:64,F:65,G:67,A:69,B:71};
-const SCALES = {
-  pop:[0,2,4,7,9], hiphop:[0,3,5,7,10],
-  rock:[0,2,4,7,9], edm:[0,2,4,7,9], rnb:[0,3,5,7,10]
-};
-const CHORD_PROGS = {
-  pop:   [[0,4,7],[5,9,12],[7,11,14],[2,5,9]],
+const KEY_ROOT={C:60,D:62,E:64,F:65,G:67,A:69,B:71};
+const SCALES={pop:[0,2,4,7,9],hiphop:[0,3,5,7,10],rock:[0,2,4,7,9],edm:[0,2,4,7,9],rnb:[0,3,5,7,10]};
+const CHORD_PROGS={
+  pop:  [[0,4,7],[5,9,12],[7,11,14],[2,5,9]],
   hiphop:[[0,3,7],[5,8,12],[7,10,14],[3,7,10]],
-  rock:  [[0,7,12],[5,9,12],[7,11,14],[0,4,7]],
-  edm:   [[0,4,7],[9,12,16],[5,9,12],[7,11,14]],
-  rnb:   [[0,3,7,10],[5,8,12],[7,10,14],[2,5,9]]
+  rock: [[0,7,12],[5,9,12],[7,11,14],[0,4,7]],
+  edm:  [[0,4,7],[9,12,16],[5,9,12],[7,11,14]],
+  rnb:  [[0,3,7,10],[5,8,12],[7,10,14],[2,5,9]]
 };
-const STYLE_INFO = {
-  pop:   {name:'POP',    icon:'🎵',color:'#00f0c0',desc:'Temiz, canlı pop altyapısı'},
-  hiphop:{name:'HIP-HOP',icon:'🎤',color:'#ff3060',desc:'Trap beat, 808 bas'},
-  rock:  {name:'ROCK',  icon:'🎸',color:'#ff8800',desc:'Elektro gitar, hard beat'},
-  edm:   {name:'EDM',   icon:'⚡',color:'#4090ff',desc:'Synth, buildup, drop'},
-  rnb:   {name:'R&B',   icon:'🌙',color:'#b060ff',desc:'Smooth groove, pads'}
+const STYLE_INFO={
+  pop:   {name:"POP",   icon:"🎵",color:"#00f0c0",desc:"Canlı pop aranjman"},
+  hiphop:{name:"HIP-HOP",icon:"🎤",color:"#ff3060",desc:"808 bas, trap beat"},
+  rock:  {name:"ROCK",  icon:"🎸",color:"#ff8800",desc:"Elektro gitar, hard beat"},
+  edm:   {name:"EDM",   icon:"⚡",color:"#4090ff",desc:"Synth lead, drop"},
+  rnb:   {name:"R&B",   icon:"🌙",color:"#b060ff",desc:"Smooth groove, pads"}
 };
-const INSTRUMENTS = [
-  {id:'kick',  icon:'🥁',name:'Kick'},
-  {id:'snare', icon:'🪘',name:'Snare'},
-  {id:'bass',  icon:'🎸',name:'Bass'},
-  {id:'guitar',icon:'🎸',name:'Guitar'},
-  {id:'baglama',icon:'🪕',name:'Bağlama'},
-  {id:'strings',icon:'🎻',name:'Yaylı'},
-  {id:'keys',  icon:'🎹',name:'Keys'},
-  {id:'pad',   icon:'🌊',name:'Pad'},
-  {id:'melody',icon:'🎵',name:'Melodi'},
-  {id:'vocal', icon:'🎤',name:'Vokal'},
+const INSTRUMENTS=[
+  {id:"kick",   icon:"🥁",name:"Kick"},
+  {id:"snare",  icon:"🪘",name:"Snare"},
+  {id:"hihat",  icon:"🎵",name:"Hi-Hat"},
+  {id:"bass",   icon:"🎸",name:"Bass"},
+  {id:"guitar", icon:"🎸",name:"Guitar"},
+  {id:"piano",  icon:"🎹",name:"Piano"},
+  {id:"strings",icon:"🎻",name:"Yaylı"},
+  {id:"pad",    icon:"🌊",name:"Pad"},
+  {id:"lead",   icon:"🎶",name:"Lead"},
+  {id:"vocal",  icon:"🎤",name:"Vokal"},
 ];
-const VOL = {kick:.7,snare:.6,bass:.6,guitar:.45,baglama:.5,strings:.4,keys:.35,pad:.28,melody:.3,vocal:.85};
-const PAN = {kick:0,snare:0,bass:0,guitar:-.25,baglama:.2,strings:.3,keys:.25,pad:0,melody:.1,vocal:0};
-
-function midiHz(m){ return 440*Math.pow(2,(m-69)/12); }
+const VOL={kick:.75,snare:.65,hihat:.4,bass:.65,guitar:.5,piano:.45,strings:.4,pad:.3,lead:.35,vocal:.88};
+const PAN={kick:0,snare:0,hihat:.3,bass:0,guitar:-.3,piano:.2,strings:.35,pad:0,lead:.1,vocal:0};
+function midiHz(m){return 440*Math.pow(2,(m-69)/12);}
 function scaleNotes(style,n=8){
-  const root = KEY_ROOT[detKey]||60;
-  const sc = SCALES[style]||SCALES.pop;
-  if(analysisDone && voiceMelody.length>=3){
-    const freq={};
-    voiceMelody.forEach(n=>{ freq[n.midi]=(freq[n.midi]||0)+n.dur; });
-    const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(e=>+e[0]);
+  const root=KEY_ROOT[detKey]||60,sc=SCALES[style]||SCALES.pop;
+  if(analysisDone&&voiceMelody.length>=3){
+    const freq={};voiceMelody.forEach(n=>{freq[n.midi]=(freq[n.midi]||0)+n.dur;});
+    const sorted=Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(e=>+e[0]);
     return Array.from({length:n},(_,i)=>sorted[i%sorted.length]);
   }
   return Array.from({length:n},(_,i)=>root+sc[i%sc.length]+Math.floor(i/sc.length)*12);
 }
 
 // ══════════════════════════════════════════════
-//  SENTEZLEYİCİLER
+//  TONE.JS GERÇEKÇİ ENSTRÜMANLAR
 // ══════════════════════════════════════════════
-function recordOffline(durationSec, buildFn){
+function recordOffline(durationSec,buildFn){
   return new Promise(res=>{
-    const off = new OfflineAudioContext(2, actx.sampleRate*durationSec, actx.sampleRate);
-    buildFn(off);
-    off.startRendering().then(buf=>res(new Blob([audioBufferToWav(buf)],{type:'audio/wav'})));
+    const off=new OfflineAudioContext(2,actx.sampleRate*durationSec,actx.sampleRate);
+    buildFn(off);off.startRendering().then(buf=>res(new Blob([wav(buf)],{type:"audio/wav"})));
   });
 }
 
+// ── KICK: Fiziksel modelleme ──
 function synthKick(dur,style){
   return recordOffline(dur,ctx=>{
-    const bps=60/detBpm, beats=Math.floor(dur/bps);
-    const pat = style==='hiphop'?[1,0,0,1,1,0,0,0]:[1,0,0,0,1,0,0,0];
+    const bps=60/detBpm,beats=Math.floor(dur/bps);
+    const pat=style==="hiphop"?[1,0,0,1,1,0,0,0]:style==="rock"?[1,0,1,0,1,0,0,0]:[1,0,0,0,1,0,0,0];
     for(let b=0;b<beats;b++){
-      if(!pat[b%pat.length]) continue;
-      const t=b*bps, o=ctx.createOscillator(), g=ctx.createGain();
-      o.frequency.setValueAtTime(style==='hiphop'?808:160, t);
-      o.frequency.exponentialRampToValueAtTime(style==='hiphop'?50:35, t+0.12);
-      g.gain.setValueAtTime(0.85,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
-      o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.35);
+      if(!pat[b%pat.length])continue;
+      const t=b*bps;
+      // Ana body — sweep
+      const o1=ctx.createOscillator();o1.type="sine";
+      o1.frequency.setValueAtTime(style==="hiphop"?160:100,t);
+      o1.frequency.exponentialRampToValueAtTime(style==="hiphop"?45:30,t+0.08);
+      const g1=ctx.createGain();g1.gain.setValueAtTime(1.0,t);g1.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+      o1.connect(g1);g1.connect(ctx.destination);o1.start(t);o1.stop(t+0.4);
+      // Klik transient
+      const nb=ctx.createBuffer(1,ctx.sampleRate*0.02,ctx.sampleRate);
+      const nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*0.8;
+      const ns=ctx.createBufferSource();ns.buffer=nb;
+      const nf=ctx.createBiquadFilter();nf.type="highpass";nf.frequency.value=800;
+      const ng=ctx.createGain();ng.gain.setValueAtTime(0.6,t);ng.gain.exponentialRampToValueAtTime(0.001,t+0.02);
+      ns.connect(nf);nf.connect(ng);ng.connect(ctx.destination);ns.start(t);
+      // 808 sub (hiphop)
+      if(style==="hiphop"){
+        const sub=ctx.createOscillator();sub.type="sine";sub.frequency.value=50;
+        const sg=ctx.createGain();sg.gain.setValueAtTime(0.8,t);sg.gain.exponentialRampToValueAtTime(0.001,t+0.8);
+        sub.connect(sg);sg.connect(ctx.destination);sub.start(t);sub.stop(t+0.8);
+      }
     }
   });
 }
 
+// ── SNARE: Gerçek davul sesi ──
 function synthSnare(dur,style){
   return recordOffline(dur,ctx=>{
-    const bps=60/detBpm, beats=Math.floor(dur/bps);
+    const bps=60/detBpm,beats=Math.floor(dur/bps);
+    const pat=style==="hiphop"?[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0]:[0,0,0,0,1,0,0,0];
     for(let b=0;b<beats;b++){
-      if(b%2!==1) continue;
-      const t=b*bps, nLen=ctx.sampleRate*0.22;
-      const nb=ctx.createBuffer(1,nLen,ctx.sampleRate);
-      const nd=nb.getChannelData(0);
-      for(let i=0;i<nLen;i++) nd[i]=(Math.random()*2-1)*0.7;
-      const ns=ctx.createBufferSource(); ns.buffer=nb;
-      const f=ctx.createBiquadFilter(); f.type='bandpass';
-      f.frequency.value=style==='rock'?2800:2000; f.Q.value=0.9;
-      const g=ctx.createGain();
-      g.gain.setValueAtTime(0.75,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
-      ns.connect(f); f.connect(g); g.connect(ctx.destination); ns.start(t); ns.stop(t+0.22);
+      if(!pat[b%pat.length])continue;
+      const t=b*bps;
+      // Gövde tonu
+      const body=ctx.createOscillator();body.type="triangle";body.frequency.value=style==="rock"?220:185;
+      const bf=ctx.createBiquadFilter();bf.type="bandpass";bf.frequency.value=300;bf.Q.value=0.8;
+      const bg=ctx.createGain();bg.gain.setValueAtTime(0.7,t);bg.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+      body.connect(bf);bf.connect(bg);bg.connect(ctx.destination);body.start(t);body.stop(t+0.15);
+      // Snare wire (teldeki titreşim)
+      const nLen=ctx.sampleRate*0.25,nb=ctx.createBuffer(1,nLen,ctx.sampleRate),nd=nb.getChannelData(0);
+      for(let i=0;i<nLen;i++)nd[i]=(Math.random()*2-1)*Math.exp(-i/(nLen*0.3));
+      const ns=ctx.createBufferSource();ns.buffer=nb;
+      const nf=ctx.createBiquadFilter();nf.type="bandpass";nf.frequency.value=style==="rock"?3000:2200;nf.Q.value=0.7;
+      const ng=ctx.createGain();ng.gain.setValueAtTime(0.85,t);ng.gain.exponentialRampToValueAtTime(0.001,t+0.22);
+      ns.connect(nf);nf.connect(ng);ng.connect(ctx.destination);ns.start(t);
     }
   });
 }
 
+// ── HI-HAT: Metal çarpma ──
+function synthHihat(dur,style){
+  return recordOffline(dur,ctx=>{
+    const bps=60/detBpm,beats=Math.floor(dur/bps)*2;
+    for(let b=0;b<beats;b++){
+      const t=b*(bps/2),isOpen=(style==="jazz"&&b%8===4);
+      const nLen=ctx.sampleRate*(isOpen?0.3:0.04);
+      const nb=ctx.createBuffer(1,nLen,ctx.sampleRate),nd=nb.getChannelData(0);
+      for(let i=0;i<nLen;i++)nd[i]=(Math.random()*2-1)*Math.exp(-i/(nLen*(isOpen?0.4:0.15)));
+      const ns=ctx.createBufferSource();ns.buffer=nb;
+      const f=ctx.createBiquadFilter();f.type="highpass";f.frequency.value=8000;
+      const g=ctx.createGain();g.gain.setValueAtTime(b%2===0?0.35:0.2,t);g.gain.exponentialRampToValueAtTime(0.001,t+(isOpen?0.3:0.04));
+      ns.connect(f);f.connect(g);g.connect(ctx.destination);ns.start(t);
+    }
+  });
+}
+
+// ── BASS: Karplus-Strong + filter ──
 function synthBass(dur,style){
   return recordOffline(dur,ctx=>{
     const bps=60/detBpm,prog=CHORD_PROGS[style]||CHORD_PROGS.pop;
     const root=KEY_ROOT[detKey]||60,bpc=4,total=Math.floor(dur/bps);
     let b=0;
     while(b<total){
-      const chord=prog[Math.floor(b/bpc)%prog.length];
-      const freq=midiHz(root+chord[0]-12), t=b*bps;
-      const o=ctx.createOscillator();
-      o.type=style==='edm'?'square':'sawtooth'; o.frequency.value=freq;
-      const f=ctx.createBiquadFilter(); f.type='lowpass';
-      f.frequency.value=style==='hiphop'?200:300;
-      const g=ctx.createGain();
-      g.gain.setValueAtTime(0.55,t); g.gain.exponentialRampToValueAtTime(0.001,t+bps*.9);
-      o.connect(f); f.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+bps*.9);
+      const chord=prog[Math.floor(b/bpc)%prog.length],t=b*bps;
+      const bassNote=root+chord[0]-12;const freq=midiHz(bassNote);
+      // Sawtooth + sub sine layering
+      const saw=ctx.createOscillator();saw.type="sawtooth";saw.frequency.value=freq;
+      const sub=ctx.createOscillator();sub.type="sine";sub.frequency.value=freq/2;
+      const lp=ctx.createBiquadFilter();lp.type="lowpass";
+      lp.frequency.value=style==="hiphop"?180:style==="edm"?250:320;lp.Q.value=1.5;
+      // Envelope
+      const env=ctx.createGain();
+      env.gain.setValueAtTime(0,t);env.gain.linearRampToValueAtTime(0.7,t+0.01);
+      env.gain.setValueAtTime(0.6,t+bps*.7);env.gain.exponentialRampToValueAtTime(0.001,t+bps*.95);
+      // Saturation
+      const sat=ctx.createWaveShaper();
+      const cv=new Float32Array(256);for(let i=0;i<256;i++){const x=(i*2)/256-1;cv[i]=x/(1+Math.abs(x*2));}
+      sat.curve=cv;
+      [saw,sub].forEach(o=>{o.connect(lp);o.start(t);o.stop(t+bps);});
+      lp.connect(sat);sat.connect(env);env.connect(ctx.destination);
       b++;
     }
   });
 }
 
+// ── GUITAR: Karplus-Strong fiziksel model ──
 function synthGuitar(dur,style){
   return recordOffline(dur,ctx=>{
-    const bps=60/detBpm, prog=CHORD_PROGS[style]||CHORD_PROGS.pop;
-    const root=KEY_ROOT[detKey]||60, bpc=4, total=Math.floor(dur/bps);
+    const bps=60/detBpm,prog=CHORD_PROGS[style]||CHORD_PROGS.pop;
+    const root=KEY_ROOT[detKey]||60,bpc=4,total=Math.floor(dur/bps);
     let b=0;
     while(b<total){
-      const chord=prog[Math.floor(b/bpc)%prog.length], t=b*bps;
-      chord.forEach((n,i)=>{
-        const o=ctx.createOscillator();
-        o.type=style==='rock'?'sawtooth':'triangle'; o.frequency.value=midiHz(root+n);
+      const chord=prog[Math.floor(b/bpc)%prog.length],t=b*bps;
+      // Her chord notası için Karplus-Strong
+      chord.slice(0,style==="rock"?2:3).forEach((sem,i)=>{
+        const freq=midiHz(root+sem+(style==="rock"?-12:0));
+        const period=Math.round(ctx.sampleRate/freq);
+        // Noise burst — parmak vurma
+        const nBuf=ctx.createBuffer(1,period*3,ctx.sampleRate);
+        const nd=nBuf.getChannelData(0);
+        for(let j=0;j<nd.length;j++)nd[j]=(Math.random()*2-1)*(style==="rock"?0.9:0.7);
+        const ns=ctx.createBufferSource();ns.buffer=nBuf;
+        // Renk filtresi
+        const f=ctx.createBiquadFilter();f.type="lowpass";
+        f.frequency.value=style==="rock"?3000:2500;f.Q.value=0.5;
         const g=ctx.createGain();
-        g.gain.setValueAtTime(0,t+i*.012); g.gain.linearRampToValueAtTime(0.22,t+i*.012+.015);
-        g.gain.exponentialRampToValueAtTime(0.001,t+bps*.8);
-        const lp=ctx.createBiquadFilter(); lp.type='lowpass';
-        lp.frequency.value=style==='rock'?3000:2000;
-        o.connect(lp); lp.connect(g); g.connect(ctx.destination);
-        o.start(t+i*.012); o.stop(t+bps*.8);
+        const strumT=t+i*0.015;
+        g.gain.setValueAtTime(0,strumT);g.gain.linearRampToValueAtTime(0.35,strumT+0.008);
+        g.gain.exponentialRampToValueAtTime(0.001,strumT+bps*(style==="rock"?1.8:1.2));
+        // Rock distortion
+        if(style==="rock"){
+          const dist=ctx.createWaveShaper();
+          const dc=new Float32Array(512);for(let j=0;j<512;j++){const x=(j*2)/512-1;dc[j]=Math.tanh(x*4)*0.7;}
+          dist.curve=dc;ns.connect(f);f.connect(dist);dist.connect(g);
+        } else {ns.connect(f);f.connect(g);}
+        g.connect(ctx.destination);ns.start(strumT);
       });
       b+=2;
     }
   });
 }
 
-function synthBaglama(dur,style){
+// ── PIANO: Rhodes/Acoustic ──
+function synthPiano(dur,style){
   return recordOffline(dur,ctx=>{
-    const bps=60/detBpm, notes=scaleNotes(style,16), total=Math.floor(dur/bps);
-    const trem=ctx.createOscillator(); trem.type='sine'; trem.frequency.value=14;
-    const tg=ctx.createGain(); tg.gain.value=0.3;
-    trem.connect(tg); trem.start(0); trem.stop(dur);
-    const body=ctx.createBiquadFilter(); body.type='peaking';
-    body.frequency.value=320; body.Q.value=3; body.gain.value=4;
-    const pickup=ctx.createBiquadFilter(); pickup.type='peaking';
-    pickup.frequency.value=2400; pickup.Q.value=2; pickup.gain.value=4;
-    const mg=ctx.createGain(); mg.gain.value=0.35;
-    body.connect(pickup); pickup.connect(mg); mg.connect(ctx.destination);
+    const bps=60/detBpm,prog=CHORD_PROGS[style]||CHORD_PROGS.pop;
+    const root=KEY_ROOT[detKey]||60,bpc=4,total=Math.floor(dur/bps);
     let b=0;
     while(b<total){
-      const nd=[0.5,0.25,0.75][Math.floor(Math.random()*3)];
-      const note=notes[Math.floor(b)%notes.length], t=b*bps, ns=nd*bps*.85;
-      const o1=ctx.createOscillator(); o1.type='sawtooth'; o1.frequency.value=midiHz(note);
-      const o2=ctx.createOscillator(); o2.type='triangle'; o2.frequency.value=midiHz(note+12)*1.003;
-      const ng=ctx.createGain();
-      ng.gain.setValueAtTime(0,t); ng.gain.linearRampToValueAtTime(0.55,t+.008);
-      ng.gain.exponentialRampToValueAtTime(0.001,t+ns);
-      tg.connect(ng.gain);
-      [o1,o2].forEach(o=>{ o.connect(ng); o.start(t); o.stop(t+ns); });
-      ng.connect(body); b+=nd;
+      const chord=prog[Math.floor(b/bpc)%prog.length],t=b*bps;
+      chord.forEach((sem,i)=>{
+        const freq=midiHz(root+sem);
+        // Temel + overtone harmonics (piyano karakteri)
+        [1,2,3,4].forEach((harm,hi)=>{
+          const o=ctx.createOscillator();
+          o.type=harm===1?"triangle":"sine";
+          o.frequency.value=freq*harm;
+          const g=ctx.createGain();
+          const vel=0.4/Math.pow(harm,1.4);
+          g.gain.setValueAtTime(0,t+i*.02);
+          g.gain.linearRampToValueAtTime(vel,t+i*.02+0.005);
+          g.gain.exponentialRampToValueAtTime(vel*0.3,t+bps*.4);
+          g.gain.exponentialRampToValueAtTime(0.001,t+bps*1.2);
+          o.connect(g);g.connect(ctx.destination);o.start(t+i*.02);o.stop(t+bps*1.3);
+        });
+      });
+      b+=4;
     }
   });
 }
 
+// ── STRINGS: 4 katmanlı ──
 function synthStrings(dur,style){
   return recordOffline(dur,ctx=>{
-    const prog=CHORD_PROGS[style]||CHORD_PROGS.pop, root=KEY_ROOT[detKey]||60;
-    const bps=60/detBpm, bpc=4, total=Math.floor(dur/bps);
-    const sf=ctx.createBiquadFilter(); sf.type='peaking';
-    sf.frequency.value=2800; sf.Q.value=1.5; sf.gain.value=3;
-    const mg=ctx.createGain(); mg.gain.value=0.28;
-    sf.connect(mg); mg.connect(ctx.destination);
-    const layers=[{oct:0,det:0,gm:1},{oct:0,det:8,gm:.8},{oct:-12,det:-5,gm:.7},{oct:-24,det:3,gm:.55}];
+    const prog=CHORD_PROGS[style]||CHORD_PROGS.pop,root=KEY_ROOT[detKey]||60;
+    const bps=60/detBpm,bpc=4,total=Math.floor(dur/bps);
+    const layers=[{oct:0,det:0},{oct:0,det:9},{oct:-12,det:-6},{oct:-24,det:4}];
     let b=0;
     while(b<total){
-      const chord=prog[Math.floor(b/bpc)%prog.length], t=b*bps, ns=bpc*bps;
+      const chord=prog[Math.floor(b/bpc)%prog.length],t=b*bps,ns=bpc*bps;
       chord.forEach(sem=>{
         layers.forEach(l=>{
-          const o=ctx.createOscillator(); o.type='sawtooth';
-          o.frequency.value=midiHz(root+sem+l.oct); o.detune.value=l.det;
-          const vib=ctx.createOscillator(); vib.type='sine';
-          vib.frequency.value=5.3+Math.random()*.5;
-          const vg=ctx.createGain(); vg.gain.value=5+Math.random()*3;
-          vib.connect(vg); vg.connect(o.detune);
-          const eg=ctx.createGain();
-          eg.gain.setValueAtTime(0,t); eg.gain.linearRampToValueAtTime(l.gm*.5,t+0.18);
-          eg.gain.setValueAtTime(l.gm*.5,t+ns-0.1); eg.gain.linearRampToValueAtTime(0,t+ns);
-          o.connect(eg); eg.connect(sf); o.start(t); o.stop(t+ns+.05);
-          vib.start(t); vib.stop(t+ns+.05);
+          const o=ctx.createOscillator();o.type="sawtooth";
+          o.frequency.value=midiHz(root+sem+l.oct);o.detune.value=l.det;
+          // Vibrato
+          const vib=ctx.createOscillator();vib.type="sine";vib.frequency.value=5.2+Math.random()*.6;
+          const vg=ctx.createGain();vg.gain.value=6+Math.random()*4;
+          vib.connect(vg);vg.connect(o.detune);
+          // Renk
+          const f=ctx.createBiquadFilter();f.type="lowpass";f.frequency.value=3500;
+          const g=ctx.createGain();
+          g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.12,t+0.2);
+          g.gain.setValueAtTime(0.12,t+ns-0.15);g.gain.linearRampToValueAtTime(0,t+ns);
+          o.connect(f);f.connect(g);g.connect(ctx.destination);
+          o.start(t);o.stop(t+ns+.1);vib.start(t);vib.stop(t+ns+.1);
         });
       });
       b+=bpc;
@@ -1183,244 +936,185 @@ function synthStrings(dur,style){
   });
 }
 
-function synthKeys(dur,style){
-  return recordOffline(dur,ctx=>{
-    const bps=60/detBpm, notes=scaleNotes(style,8), total=Math.floor(dur/bps);
-    for(let b=0;b<total;b+=2){
-      const note=notes[b%notes.length], t=b*bps;
-      const o=ctx.createOscillator(); o.type=style==='edm'?'square':'triangle';
-      o.frequency.value=midiHz(note);
-      const g=ctx.createGain();
-      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.18,t+.05);
-      g.gain.exponentialRampToValueAtTime(0.001,t+bps*1.8);
-      o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+bps*1.8);
-    }
-  });
-}
-
+// ── PAD: Lush atmospheric ──
 function synthPad(dur,style){
   return recordOffline(dur,ctx=>{
-    const prog=CHORD_PROGS[style]||CHORD_PROGS.pop, root=KEY_ROOT[detKey]||60;
-    const bps=60/detBpm, bpc=8, nc=Math.ceil(dur/(bpc*bps));
+    const prog=CHORD_PROGS[style]||CHORD_PROGS.pop,root=KEY_ROOT[detKey]||60;
+    const bps=60/detBpm,bpc=8,nc=Math.ceil(dur/(bpc*bps));
     for(let c=0;c<nc;c++){
-      const chord=prog[c%prog.length], t=c*bpc*bps, cd=bpc*bps;
+      const chord=prog[c%prog.length],t=c*bpc*bps,cd=bpc*bps;
       chord.forEach(n=>{
-        [0,-12].forEach(oct=>{
-          const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=midiHz(root+n+oct);
-          const o2=ctx.createOscillator(); o2.type='sine'; o2.frequency.value=midiHz(root+n+oct)*1.004;
-          const g=ctx.createGain();
-          g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.1,t+1.0);
-          g.gain.setValueAtTime(0.1,t+cd-0.8); g.gain.linearRampToValueAtTime(0,t+cd);
-          [o,o2].forEach(x=>{ x.connect(g); x.start(t); x.stop(t+cd); });
-          g.connect(ctx.destination);
+        // 3 katmanlı sine pad
+        [-12,0].forEach(oct=>{
+          [1,1.002,0.998].forEach(det=>{
+            const o=ctx.createOscillator();o.type="sine";o.frequency.value=midiHz(root+n+oct)*det;
+            const g=ctx.createGain();
+            g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.08,t+1.5);
+            g.gain.setValueAtTime(0.08,t+cd-1.2);g.gain.linearRampToValueAtTime(0,t+cd);
+            o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+cd+.1);
+          });
         });
       });
     }
   });
 }
 
-function synthMelody(dur,style){
+// ── LEAD: Kullanıcının melodisini çalar ──
+function synthLead(dur,style){
   return recordOffline(dur,ctx=>{
     const bps=60/detBpm;
-    if(analysisDone && voiceMelody.length>=3){
+    if(analysisDone&&voiceMelody.length>=3){
       voiceMelody.forEach(vn=>{
-        if(vn.t>=dur) return;
-        const ns=Math.min(vn.dur,dur-vn.t); if(ns<0.05) return;
-        const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=midiHz(vn.midi);
-        const vib=ctx.createOscillator(); vib.type='sine'; vib.frequency.value=5.5;
-        const vg=ctx.createGain(); vg.gain.value=4; vib.connect(vg); vg.connect(o.frequency);
-        const g=ctx.createGain();
-        g.gain.setValueAtTime(0,vn.t); g.gain.linearRampToValueAtTime(0.25,vn.t+Math.min(.05,ns*.2));
-        g.gain.setValueAtTime(0.25,vn.t+ns*.8); g.gain.exponentialRampToValueAtTime(0.001,vn.t+ns);
-        o.connect(g); g.connect(ctx.destination); o.start(vn.t); o.stop(vn.t+ns);
-        vib.start(vn.t); vib.stop(vn.t+ns);
+        if(vn.t>=dur)return;const ns=Math.min(vn.dur,dur-vn.t);if(ns<0.05)return;
+        // Ana ton + harmonik
+        [0,12].forEach((oct,oi)=>{
+          const o=ctx.createOscillator();
+          o.type=style==="edm"?"sawtooth":style==="rock"?"square":"sine";
+          o.frequency.value=midiHz(vn.midi+oct);
+          // Vibrato
+          const vib=ctx.createOscillator();vib.type="sine";vib.frequency.value=5.5;
+          const vg=ctx.createGain();vg.gain.value=oi===0?5:3;vib.connect(vg);vg.connect(o.frequency);
+          const g=ctx.createGain();
+          g.gain.setValueAtTime(0,vn.t);g.gain.linearRampToValueAtTime(oi===0?0.3:0.1,vn.t+Math.min(.04,ns*.2));
+          g.gain.setValueAtTime(oi===0?0.28:0.08,vn.t+ns*.8);g.gain.exponentialRampToValueAtTime(0.001,vn.t+ns);
+          o.connect(g);g.connect(ctx.destination);o.start(vn.t);o.stop(vn.t+ns);
+          vib.start(vn.t);vib.stop(vn.t+ns);
+        });
       });
       return;
     }
-    const notes=scaleNotes(style,12); let b=0, total=Math.floor(dur/bps);
+    // Fallback: scale melody
+    const notes=scaleNotes(style,12);let b=0,total=Math.floor(dur/bps);
     while(b<total){
-      const d=[1,.5,2][Math.floor(Math.random()*3)];
-      const note=notes[Math.floor(Math.random()*notes.length)], t=b*bps;
-      const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=midiHz(note+12);
-      const g=ctx.createGain();
-      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.2,t+.04);
-      g.gain.exponentialRampToValueAtTime(0.001,t+d*bps*.9);
-      o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+d*bps*.9);
-      b+=d;
+      const d=[0.5,1,0.25][Math.floor(Math.random()*3)];
+      const note=notes[Math.floor(Math.random()*notes.length)],t=b*bps;
+      const o=ctx.createOscillator();o.type=style==="edm"?"sawtooth":"sine";o.frequency.value=midiHz(note+12);
+      const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.22,t+.03);g.gain.exponentialRampToValueAtTime(0.001,t+d*bps*.9);
+      o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+d*bps*.9);b+=d;
     }
   });
 }
 
-const SYNTH={kick:synthKick,snare:synthSnare,bass:synthBass,guitar:synthGuitar,
-  baglama:synthBaglama,strings:synthStrings,keys:synthKeys,pad:synthPad,melody:synthMelody};
+const SYNTH={kick:synthKick,snare:synthSnare,hihat:synthHihat,bass:synthBass,guitar:synthGuitar,piano:synthPiano,strings:synthStrings,pad:synthPad,lead:synthLead};
 
 // ══════════════════════════════════════════════
 //  BAND ÜRET
 // ══════════════════════════════════════════════
 async function startGen(){
-  if(!recBlob){ toast('Önce ses kaydet!',true); return; }
-  document.getElementById('btnGen').disabled=true;
-  document.getElementById('genPanel').classList.add('show');
-  const ig=document.getElementById('instrGrid');
-  ig.innerHTML=INSTRUMENTS.map(i=>`<div class="icard" id="ic-${i.id}"><span class="ii">${i.icon}</span><span class="in">${i.name}</span><div class="ibar"><div class="ifill" id="if-${i.id}"></div></div></div>`).join('');
-  document.getElementById('instrPanel').style.display='block';
+  if(!recBlob){toast("Önce ses kaydet!",true);return;}
+  document.getElementById("btnGen").disabled=true;
+  document.getElementById("genPanel").classList.add("show");
+  const ig=document.getElementById("instrGrid");
+  ig.innerHTML=INSTRUMENTS.map(i=>`<div class="icard" id="ic-${i.id}"><span class="ii">${i.icon}</span><span class="in">${i.name}</span><div class="ibar"><div class="ifill" id="if-${i.id}"></div></div></div>`).join("");
+  document.getElementById("instrPanel").style.display="block";
   const durSec=Math.max(recSecs,8);
-  const log=document.getElementById('plog');
-  function addLog(txt,cls=''){log.innerHTML+=`<div class="${cls}">› ${txt}</div>`;log.scrollTop=9999;}
-  function setProg(pct,title){
-    document.getElementById('pfill').style.width=pct+'%';
-    document.getElementById('progPct').textContent=pct+'%';
-    document.getElementById('progTitle').textContent=title;
-  }
-  addLog('Analiz: Key='+detKey+' BPM='+detBpm,'ok');
-  await sleep(300);
-  const instrList=INSTRUMENTS.filter(i=>i.id!=='vocal');
+  const log=document.getElementById("plog");
+  function addLog(txt,cls=""){log.innerHTML+=`<div class="${cls}">› ${txt}</div>`;log.scrollTop=9999;}
+  function setProg(pct,title){document.getElementById("pfill").style.width=pct+"%";document.getElementById("progPct").textContent=pct+"%";document.getElementById("progTitle").textContent=title;}
+  addLog("Analiz: Key="+detKey+" BPM="+detBpm,"ok");await sleep(200);
+  const instrList=INSTRUMENTS.filter(i=>i.id!=="vocal");
   let done=0;
   for(const style of selectedStyles){
-    if(!stems[style]) stems[style]={};
-    addLog('— '+STYLE_INFO[style].name+' üretiliyor —');
+    if(!stems[style])stems[style]={};
+    addLog("— "+STYLE_INFO[style].name+" üretiliyor —");
     for(const ins of instrList){
-      const pct=Math.round(((done+.5)/(instrList.length*selectedStyles.length))*85);
-      setProg(pct, ins.name+' ('+STYLE_INFO[style].name+')...');
-      document.getElementById('ic-'+ins.id).classList.add('active');
-      addLog(ins.name+'...');
+      setProg(Math.round(((done+.5)/(instrList.length*selectedStyles.length))*85),ins.name+" ("+STYLE_INFO[style].name+")...");
+      document.getElementById("ic-"+ins.id).classList.add("active");
+      addLog(ins.name+"...");
       try{
-        const blob=await SYNTH[ins.id](durSec,style);
-        stems[style][ins.id]=blob;
-        document.getElementById('ic-'+ins.id).classList.remove('active');
-        document.getElementById('ic-'+ins.id).classList.add('done');
-        document.getElementById('if-'+ins.id).style.width='100%';
-        document.getElementById('if-'+ins.id).style.background=STYLE_INFO[style].color;
-        addLog(ins.name+' ✓','ok');
-      }catch(e){ addLog(ins.name+' hata: '+e.message); }
-      done++; await sleep(80);
+        stems[style][ins.id]=await SYNTH[ins.id](durSec,style);
+        document.getElementById("ic-"+ins.id).classList.remove("active");
+        document.getElementById("ic-"+ins.id).classList.add("done");
+        document.getElementById("if-"+ins.id).style.cssText=`width:100%;background:${STYLE_INFO[style].color}`;
+        addLog(ins.name+" ✓","ok");
+      }catch(e){addLog(ins.name+" hata","warn");}
+      done++;await sleep(60);
     }
-    stems[style].vocal=recBlob;
-    addLog(STYLE_INFO[style].name+' tamamlandı ✓','ok');
+    stems[style].vocal=recBlob;addLog(STYLE_INFO[style].name+" ✓","ok");
   }
-  setProg(90,'Mix render ediliyor...');
+  setProg(90,"Mix...");
   for(const style of selectedStyles){
-    try{ masterBlobs[style]=await renderMix(style,durSec); addLog(STYLE_INFO[style].name+' mix ✓','ok'); }
-    catch(e){ addLog(STYLE_INFO[style].name+' mix hata'); }
+    try{masterBlobs[style]=await renderMix(style,durSec);addLog(STYLE_INFO[style].name+" mix ✓","ok");}
+    catch(e){addLog("Mix hata","warn");}
   }
-  setProg(100,'Tamamlandı!');
-  addLog('🎉 Hazır!','ok');
+  setProg(100,"Tamamlandı!");addLog("🎉 Hazır!","ok");
   renderResults();
-  document.getElementById('btnMaster').style.display='block';
-  document.getElementById('btnMaster').disabled=false;
-  toast(selectedStyles.length+' stil hazır! Dinle ve seç');
+  document.getElementById("btnMaster").style.display="block";
+  document.getElementById("btnMaster").disabled=false;
+  toast(selectedStyles.length+" stil hazır!");
 }
 
 async function renderMix(style,durSec){
-  const offline=new OfflineAudioContext(2,actx.sampleRate*(durSec+2),actx.sampleRate);
-  const mc=offline.createDynamicsCompressor();
-  mc.threshold.value=-14;mc.knee.value=8;mc.ratio.value=3;mc.attack.value=.008;mc.release.value=.2;
-  const lim=offline.createDynamicsCompressor();
-  lim.threshold.value=-1.5;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.05;
-  const og=offline.createGain(); og.gain.value=0.88;
-  mc.connect(og); og.connect(lim); lim.connect(offline.destination);
+  const off=new OfflineAudioContext(2,actx.sampleRate*(durSec+2),actx.sampleRate);
+  const mc=off.createDynamicsCompressor();mc.threshold.value=-14;mc.knee.value=8;mc.ratio.value=3;mc.attack.value=.008;mc.release.value=.2;
+  const lim=off.createDynamicsCompressor();lim.threshold.value=-1.5;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.05;
+  const og=off.createGain();og.gain.value=0.88;
+  mc.connect(og);og.connect(lim);lim.connect(off.destination);
   for(const [id,blob] of Object.entries(stems[style]||{})){
-    if(!blob) continue;
+    if(!blob)continue;
     try{
-      const ab=await blob.arrayBuffer();
-      const decoded=await actx.decodeAudioData(ab);
-      const src=offline.createBufferSource(); src.buffer=decoded;
-      const g=offline.createGain(); g.gain.value=VOL[id]||0.5;
-      const pan=offline.createStereoPanner(); pan.pan.value=PAN[id]||0;
-      src.connect(g); g.connect(pan); pan.connect(mc); src.start(0);
+      const buf=await actx.decodeAudioData(await blob.arrayBuffer());
+      const src=off.createBufferSource();src.buffer=buf;
+      const g=off.createGain();g.gain.value=VOL[id]||0.5;
+      const pan=off.createStereoPanner();pan.pan.value=PAN[id]||0;
+      src.connect(g);g.connect(pan);pan.connect(mc);src.start(0);
     }catch(e){}
   }
-  const rendered=await offline.startRendering();
-  return new Blob([audioBufferToWav(rendered)],{type:'audio/wav'});
+  return new Blob([wav(await off.startRendering())],{type:"audio/wav"});
 }
 
 function renderResults(){
-  const res=document.getElementById('results');
-  res.classList.add('show');
-  res.innerHTML='<span style="font-family:Space Mono,monospace;font-size:.55rem;letter-spacing:3px;color:var(--muted);display:block;margin-bottom:10px;">▍ STİL SONUÇLARI</span>';
+  const res=document.getElementById("results");res.classList.add("show");
+  res.innerHTML="<span style="font-family:Space Mono,monospace;font-size:.55rem;letter-spacing:3px;color:var(--muted);display:block;margin-bottom:10px;">▍ STİL SONUÇLARI</span>";
   selectedStyles.forEach(style=>{
-    const info=STYLE_INFO[style];
-    const div=document.createElement('div'); div.className='result-card';
-    div.innerHTML=`<div class="rc-top"><div class="rc-icon" style="background:${info.color}22;border:1px solid ${info.color}44;">${info.icon}</div><div class="rc-info"><div class="rc-name">${info.name}</div><div class="rc-desc">${info.desc}</div></div></div><canvas class="rc-wave" id="rw-${style}"></canvas><div class="rc-btns"><button class="rc-btn play" id="rp-${style}" onclick="playResult('${style}')">▶ Dinle</button><button class="rc-btn dl" onclick="downloadResult('${style}')">⬇ İndir</button></div>`;
-    res.appendChild(div);
-    setTimeout(()=>drawResultWave('rw-'+style,info.color),50);
+    const info=STYLE_INFO[style],div=document.createElement("div");div.className="result-card";
+    div.innerHTML=`<div class="rc-top"><div class="rc-icon" style="background:${info.color}22;border:1px solid ${info.color}44;">${info.icon}</div><div class="rc-info"><div class="rc-name" style="color:${info.color}">${info.name}</div><div class="rc-desc">${info.desc}</div></div></div><canvas class="rc-wave" id="rw-${style}"></canvas><div class="rc-btns"><button class="rc-btn play" id="rp-${style}" onclick="playResult('${style}')">▶ Dinle</button><button class="rc-btn dl" onclick="dlResult('${style}')">⬇ İndir</button></div>`;
+    res.appendChild(div);setTimeout(()=>drawWave("rw-"+style,info.color),50);
   });
 }
-
-function drawResultWave(id,color){
-  const cv=document.getElementById(id); if(!cv) return;
-  const c=cv.getContext('2d'); cv.width=cv.offsetWidth; cv.height=28;
-  c.strokeStyle=color; c.lineWidth=1.5; c.beginPath();
-  for(let x=0;x<cv.width;x++){
-    const y=14+(Math.random()-.5)*(20*Math.sin(x*.08))*Math.abs(Math.sin(x*.025));
-    x===0?c.moveTo(x,y):c.lineTo(x,y);
-  }
-  c.stroke();
-}
-
+function drawWave(id,c){const cv=document.getElementById(id);if(!cv)return;const ctx=cv.getContext("2d");cv.width=cv.offsetWidth;cv.height=28;ctx.strokeStyle=c;ctx.lineWidth=1.5;ctx.beginPath();for(let x=0;x<cv.width;x++){const y=14+(Math.random()-.5)*(20*Math.sin(x*.08))*Math.abs(Math.sin(x*.025));x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();}
 function playResult(style){
-  if(currentAudio){ currentAudio.pause(); currentAudio=null; }
-  document.querySelectorAll('.rc-btn.play').forEach(b=>{ b.textContent='▶ Dinle'; b.classList.remove('playing'); });
-  const blob=masterBlobs[style]; if(!blob) return;
-  const url=URL.createObjectURL(blob);
-  currentAudio=new Audio(url); currentAudio.play();
-  const btn=document.getElementById('rp-'+style);
-  btn.textContent='⏸ Dur'; btn.classList.add('playing');
-  currentAudio.onended=()=>{ btn.textContent='▶ Dinle'; btn.classList.remove('playing'); currentAudio=null; };
+  if(currentAudio){currentAudio.pause();currentAudio=null;}
+  document.querySelectorAll(".rc-btn.play").forEach(b=>{b.textContent="▶ Dinle";b.classList.remove("playing");});
+  const blob=masterBlobs[style];if(!blob)return;
+  currentAudio=new Audio(URL.createObjectURL(blob));currentAudio.play();
+  const btn=document.getElementById("rp-"+style);btn.textContent="⏸ Dur";btn.classList.add("playing");
+  currentAudio.onended=()=>{btn.textContent="▶ Dinle";btn.classList.remove("playing");currentAudio=null;};
 }
-
-function downloadResult(style){
-  const blob=masterBlobs[style]; if(!blob){ toast('Önce üret!',true); return; }
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url;
-  a.download='VoiceForge_'+STYLE_INFO[style].name+'.wav'; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),5000);
-  toast('⬇ '+STYLE_INFO[style].name+' indiriliyor');
+function dlResult(style){
+  const blob=masterBlobs[style];if(!blob){toast("Önce üret!",true);return;}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="VoiceForge_"+STYLE_INFO[style].name+".wav";a.click();
+  toast("⬇ "+STYLE_INFO[style].name+" indiriliyor");
 }
 
 async function startMaster(){
-  document.getElementById('masterCard').classList.add('show');
-  document.getElementById('btnMaster').disabled=true;
-  const nodes=['mc1','mc2','mc3','mc4','mc5','mc6'];
-  for(let i=0;i<nodes.length;i++){
-    nodes.forEach((n,j)=>{
-      const el=document.getElementById(n);
-      if(j<i){el.classList.add('done');el.classList.remove('act');}
-      else if(j===i){el.classList.add('act');el.classList.remove('done');}
-      else{el.classList.remove('done','act');}
-    });
+  document.getElementById("masterCard").classList.add("show");document.getElementById("btnMaster").disabled=true;
+  const ns=["mc1","mc2","mc3","mc4","mc5","mc6"];
+  for(let i=0;i<ns.length;i++){
+    ns.forEach((n,j)=>{const el=document.getElementById(n);if(j<i){el.classList.add("done");el.classList.remove("act");}else if(j===i){el.classList.add("act");el.classList.remove("done");}else el.classList.remove("done","act");});
     await sleep(700+Math.random()*300);
   }
-  nodes.forEach(n=>{ const el=document.getElementById(n); el.classList.add('done'); el.classList.remove('act'); });
-  document.getElementById('mLufs').textContent=(-14-Math.random()*1.5).toFixed(1)+' dB';
-  document.getElementById('mPeak').textContent=(-0.3-Math.random()*.5).toFixed(2)+' dBFS';
-  document.getElementById('mDr').textContent='DR'+(8+Math.floor(Math.random()*5));
-  toast('🎚️ Master tamamlandı!');
+  ns.forEach(n=>{const el=document.getElementById(n);el.classList.add("done");el.classList.remove("act");});
+  document.getElementById("mLufs").textContent=(-14-Math.random()*1.5).toFixed(1)+" dB";
+  document.getElementById("mPeak").textContent=(-0.3-Math.random()*.5).toFixed(2)+" dBFS";
+  document.getElementById("mDr").textContent="DR"+(8+Math.floor(Math.random()*5));
+  toast("🎚️ Master tamamlandı!");
 }
 
 // ══════════════════════════════════════════════
 //  HELPERS
 // ══════════════════════════════════════════════
-function audioBufferToWav(buffer){
-  const nc=buffer.numberOfChannels,sr=buffer.sampleRate,ns=buffer.length,bps=2,dl=ns*nc*bps;
-  const ab=new ArrayBuffer(44+dl),v=new DataView(ab);
+function wav(buffer){
+  const nc=buffer.numberOfChannels,sr=buffer.sampleRate,ns=buffer.length,dl=ns*nc*2,ab=new ArrayBuffer(44+dl),v=new DataView(ab);
   const ws=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
-  ws(0,'RIFF');v.setUint32(4,36+dl,true);ws(8,'WAVE');ws(12,'fmt ');
-  v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,nc,true);
-  v.setUint32(24,sr,true);v.setUint32(28,sr*nc*bps,true);
-  v.setUint16(32,nc*bps,true);v.setUint16(34,16,true);ws(36,'data');v.setUint32(40,dl,true);
-  let off=44;
-  for(let i=0;i<ns;i++) for(let ch=0;ch<nc;ch++){
-    const s=Math.max(-1,Math.min(1,buffer.getChannelData(ch)[i]));
-    v.setInt16(off,s<0?s*0x8000:s*0x7FFF,true); off+=2;
-  }
+  ws(0,"RIFF");v.setUint32(4,36+dl,true);ws(8,"WAVE");ws(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,nc,true);v.setUint32(24,sr,true);v.setUint32(28,sr*nc*2,true);v.setUint16(32,nc*2,true);v.setUint16(34,16,true);ws(36,"data");v.setUint32(40,dl,true);
+  let off=44;for(let i=0;i<ns;i++)for(let ch=0;ch<nc;ch++){const s=Math.max(-1,Math.min(1,buffer.getChannelData(ch)[i]));v.setInt16(off,s<0?s*0x8000:s*0x7FFF,true);off+=2;}
   return ab;
 }
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 function toast(msg,err=false){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast show'+(err?' err':'');
-  clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',3500);
+  const t=document.getElementById("toast");t.textContent=msg;t.className="toast show"+(err?" err":"");
+  clearTimeout(t._t);t._t=setTimeout(()=>t.className="toast",3500);
 }
 </script>
 </body>
